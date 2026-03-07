@@ -4,7 +4,7 @@
 - [x] Task: Project setup and FastAPI skeleton [93ab9fb]
     - [ ] Sub-task: Write tests for basic API endpoints
     - [ ] Sub-task: Implement FastAPI server and tray icon boilerplate
-- [ ] Task: Virtual Desktop Discovery API integration
+- [x] Task: Virtual Desktop Discovery API integration [9002761]
     - [ ] Sub-task: Write tests for OS API wrappers
     - [ ] Sub-task: Implement Windows 11 virtual desktop querying logic
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Foundation and System Daemon' (Protocol in workflow.md)
