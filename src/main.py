@@ -1,5 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from pydantic import BaseModel
+from sse_starlette.sse import EventSourceResponse
+import asyncio
+import json
 from src.desktop import get_virtual_desktops
 from src.window import get_all_windows
 from src.terminal import TerminalTracker, detect_terminals
@@ -9,6 +12,27 @@ terminal_tracker = TerminalTracker()
 
 class TerminalNameRequest(BaseModel):
     name: str
+
+async def event_generator(request: Request):
+    while True:
+        if await request.is_disconnected():
+            break
+            
+        # In a real app we'd diff state here. For MVP, we'll push current state periodically.
+        state = {
+            "desktops": get_virtual_desktops(),
+            "windows": get_all_windows(),
+            "terminals": detect_terminals()
+        }
+        for t in state["terminals"]:
+            t["custom_name"] = terminal_tracker.get_name(t["pid"])
+            
+        yield {"data": json.dumps(state)}
+        await asyncio.sleep(2)
+
+@app.get("/events")
+async def sse_events(request: Request):
+    return EventSourceResponse(event_generator(request))
 
 @app.get("/")
 def read_root():

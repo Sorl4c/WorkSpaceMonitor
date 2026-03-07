@@ -7,3 +7,5 @@ pystray
 pillow
 pyvda
 psutil
+sse-starlette
+pytest-asyncio
