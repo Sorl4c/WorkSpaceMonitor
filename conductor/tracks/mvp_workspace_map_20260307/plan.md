@@ -13,7 +13,7 @@
 - [x] Task: Window Enumeration mapping [4a3b47c]
     - [ ] Sub-task: Write tests for window-to-desktop mapping logic
     - [ ] Sub-task: Implement window enumeration and filtering
-- [ ] Task: Terminal process tracking
+- [x] Task: Terminal process tracking [89c8e38]
     - [ ] Sub-task: Write tests for terminal detection and naming prompt logic
     - [ ] Sub-task: Implement tracking and manual naming feature
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Window Enumeration and Terminal Tracking' (Protocol in workflow.md)
