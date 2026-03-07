@@ -16,7 +16,7 @@
 - [x] Task: Terminal process tracking [89c8e38]
     - [ ] Sub-task: Write tests for terminal detection and naming prompt logic
     - [ ] Sub-task: Implement tracking and manual naming feature
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Window Enumeration and Terminal Tracking' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Phase 2: Window Enumeration and Terminal Tracking' (Protocol in workflow.md)
     - [ ] Sub-task: Persist manual terminal labels in SQLite and restore them on subsequent detections when possible
 
 
