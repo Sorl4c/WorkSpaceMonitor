@@ -8,10 +8,11 @@ The local dashboard updates in real time using **Server-Sent Events (SSE)**. Fas
 
 ### Languages
 - **Python:** Used for the system daemon, OS API interactions, and local backend server.
-- **JavaScript:** Used on the frontend for dashboard interactivity.
+- **JavaScript:** Used on the frontend for dashboard interactivity (Alpine.js).
 
 ### Backend Daemon & API
-- **FastAPI (Python):** Chosen for its high performance, ease of use, and built-in asynchronous support, making it ideal for a responsive local API, serving the dashboard, and streaming SSE.
+- **FastAPI (Python):** Chosen for its high performance, ease of use, and built-in asynchronous support, making it ideal for a responsive local API, serving the dashboard, and streaming SSE (via `sse-starlette`).
+- **psutil:** Used for background process detection and tracking.
 
 ### Frontend Web Dashboard
 - **Alpine.js:** A rugged, minimal framework for composing JavaScript behavior in the UI. It provides reactivity with minimal overhead and no complex build steps, handling lightweight UI reactivity to SSE events seamlessly.
