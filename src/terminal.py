@@ -1,4 +1,17 @@
 import sqlite3
+import psutil
+
+TERMINAL_PROCESS_NAMES = ["WindowsTerminal.exe", "cmd.exe", "pwsh.exe", "powershell.exe", "alacritty.exe"]
+
+def detect_terminals() -> list[dict]:
+    terminals = []
+    for proc in psutil.process_iter(['pid', 'name']):
+        try:
+            if proc.info['name'] and proc.info['name'] in TERMINAL_PROCESS_NAMES:
+                terminals.append({"pid": proc.info['pid'], "name": proc.info['name']})
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+    return terminals
 
 class TerminalTracker:
     def __init__(self, db_path: str = "terminals.db"):

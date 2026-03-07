@@ -23,6 +23,15 @@ def test_read_windows(mock_get_all_windows):
     assert response.status_code == 200
     assert response.json() == [{"hwnd": 123, "title": "Test Window", "desktop_id": "1"}]
 
+@patch('src.main.detect_terminals')
+@patch('src.main.terminal_tracker.get_name')
+def test_read_terminals(mock_get_name, mock_detect_terminals):
+    mock_detect_terminals.return_value = [{"pid": 123, "name": "cmd.exe"}]
+    mock_get_name.return_value = "Test Terminal"
+    response = client.get("/terminals")
+    assert response.status_code == 200
+    assert response.json() == [{"pid": 123, "name": "cmd.exe", "custom_name": "Test Terminal"}]
+
 @patch('src.main.terminal_tracker.get_name')
 def test_read_terminal(mock_get_name):
     mock_get_name.return_value = "Test Terminal"

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from src.desktop import get_virtual_desktops
 from src.window import get_all_windows
-from src.terminal import TerminalTracker
+from src.terminal import TerminalTracker, detect_terminals
 
 app = FastAPI(title="Workspace Monitor")
 terminal_tracker = TerminalTracker()
@@ -21,6 +21,14 @@ def read_desktops():
 @app.get("/windows")
 def read_windows():
     return get_all_windows()
+
+@app.get("/terminals")
+def read_terminals():
+    terminals = detect_terminals()
+    for t in terminals:
+        custom_name = terminal_tracker.get_name(t["pid"])
+        t["custom_name"] = custom_name
+    return terminals
 
 @app.get("/terminals/{pid}")
 def read_terminal(pid: int):
