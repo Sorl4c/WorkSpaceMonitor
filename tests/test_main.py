@@ -15,3 +15,29 @@ def test_read_desktops(mock_get_virtual_desktops):
     response = client.get("/desktops")
     assert response.status_code == 200
     assert response.json() == [{"id": "1", "number": 1, "name": "Desktop 1"}]
+
+@patch('src.main.get_all_windows')
+def test_read_windows(mock_get_all_windows):
+    mock_get_all_windows.return_value = [{"hwnd": 123, "title": "Test Window", "desktop_id": "1"}]
+    response = client.get("/windows")
+    assert response.status_code == 200
+    assert response.json() == [{"hwnd": 123, "title": "Test Window", "desktop_id": "1"}]
+
+@patch('src.main.terminal_tracker.get_name')
+def test_read_terminal(mock_get_name):
+    mock_get_name.return_value = "Test Terminal"
+    response = client.get("/terminals/123")
+    assert response.status_code == 200
+    assert response.json() == {"pid": 123, "name": "Test Terminal"}
+
+    mock_get_name.return_value = None
+    response = client.get("/terminals/456")
+    assert response.status_code == 200
+    assert response.json() == {"pid": 456, "name": None}
+
+@patch('src.main.terminal_tracker.set_name')
+def test_update_terminal(mock_set_name):
+    response = client.post("/terminals/123", json={"name": "New Terminal"})
+    assert response.status_code == 200
+    assert response.json() == {"pid": 123, "name": "New Terminal"}
+    mock_set_name.assert_called_once_with(123, "New Terminal")
