@@ -8,6 +8,8 @@ Build the initial MVP for Workspace Monitor. This track covers the core Python d
 - **Window Enumeration:** Enumerate all open windows and map them to their respective virtual desktops.
 - **Terminal Tracking:** Detect new terminal sessions and allow the user to manually assign names to them.
 - **Local Dashboard:** Serve a local web interface via FastAPI that summarizes the current state using Server-Sent Events (SSE) to push updates.
+- **Terminal Metadata Persistence:** Store manual terminal labels in SQLite so they survive snapshots and app restarts when possible.
+
 
 ## Non-Functional Requirements
 - **Performance:** Low CPU/RAM usage; sub-500ms latency for SSE updates.
@@ -15,6 +17,7 @@ Build the initial MVP for Workspace Monitor. This track covers the core Python d
 - **Security:** Dashboard strictly bound to localhost.
 
 ## Acceptance Criteria
+- Manual terminal labels are persisted locally in SQLite and restored in subsequent snapshots and application restarts when possible.
 - Running the daemon starts a system tray icon and a localhost server.
 - The web dashboard accurately displays the number of virtual desktops and their associated windows.
 - New windows reflect on the dashboard in real time without refreshing.
