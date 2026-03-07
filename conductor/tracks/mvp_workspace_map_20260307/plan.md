@@ -7,7 +7,7 @@
 - [x] Task: Virtual Desktop Discovery API integration [9002761]
     - [ ] Sub-task: Write tests for OS API wrappers
     - [ ] Sub-task: Implement Windows 11 virtual desktop querying logic
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Foundation and System Daemon' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Phase 1: Foundation and System Daemon' (Protocol in workflow.md)
 
 ## Phase 2: Window Enumeration and Terminal Tracking
 - [ ] Task: Window Enumeration mapping
