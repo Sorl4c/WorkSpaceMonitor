@@ -1,183 +1,153 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Workspace Monitor</title>
-    <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    <style>
-        :root {
-            --bg-color: #121212;
-            --surface-color: #1e1e1e;
-            --text-color: #e0e0e0;
-            --text-muted: #888888;
-            --border-color: #333333;
-            --accent-color: #4CAF50;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 2rem;
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        header {
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin: 0;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .card {
-            background-color: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1.5rem;
-            transition: transform 0.2s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-2px);
-        }
-
-        .card h2 {
-            margin-top: 0;
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .window-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .window-item {
-            padding: 0.5rem 0;
-            border-bottom: 1px solid var(--border-color);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-size: 0.9rem;
-            cursor: default;
-        }
-
-        .window-item:last-child {
-            border-bottom: none;
-        }
-        
-        .window-item:hover {
-            color: #fff;
-        }
-
-        .meta {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            margin-left: 0.5rem;
-        }
-
-        [x-cloak] { display: none !important; }
-    </style>
+    <script type="module" src="/js/app.js"></script>
+    <link rel="stylesheet" href="/css/ui.css">
 </head>
-<body x-data="workspaceMonitor()">
-    <div class="container">
-        <header>
-            <h1>Workspace Monitor</h1>
-        </header>
-
-        <div class="grid" x-cloak>
-            <!-- Iterate over Desktops -->
-            <template x-for="desktop in desktops" :key="desktop.id">
-                <div class="card">
-                    <h2 x-text="desktop.name || 'Desktop ' + desktop.number"></h2>
-                    <ul class="window-list">
-                        <!-- Iterate over Windows belonging to this Desktop -->
-                        <template x-for="win in getWindowsForDesktop(desktop.id)" :key="win.hwnd">
-                            <li class="window-item" :title="win.title">
-                                <span x-text="win.title"></span>
-                                <!-- Show terminal name if matched -->
-                                <template x-if="getTerminalName(win.pid)">
-                                    <span class="meta" x-text="'[' + getTerminalName(win.pid) + ']'"></span>
-                                </template>
-                            </li>
-                        </template>
-                        <li class="window-item meta" x-show="getWindowsForDesktop(desktop.id).length === 0">
-                            No active windows
-                        </li>
-                    </ul>
-                </div>
+<body x-data x-init="$store.wm.init()">
+    <div class="app" x-cloak>
+        <aside class="sidebar">
+            <h1 class="sidebar-title">Workspace Monitor</h1>
+            <template x-for="desktop in $store.wm.desktopsWithSummary" :key="desktop.desktopId">
+                <button
+                    class="desktop-btn"
+                    :class="{ 'active': desktop.desktopId === $store.wm.activeDesktopId }"
+                    @click="$store.wm.setActiveDesktop(desktop.desktopId)"
+                >
+                    <div class="desktop-num" x-text="`[${desktop.number}]`"></div>
+                    <div class="desktop-name" x-text="desktop.name"></div>
+                    <div class="desktop-summary" x-text="desktop.semanticSummary"></div>
+                </button>
             </template>
-        </div>
+
+            <div class="empty-desktops" x-show="$store.wm.emptyDesktops.length > 0">
+                <button class="toggle-line" @click="$store.wm.toggleEmptyDesktops()">
+                    <span x-show="!$store.wm.showEmptyDesktops">▶</span>
+                    <span x-show="$store.wm.showEmptyDesktops">▼</span>
+                    <span x-text="` [${$store.wm.emptyDesktops.map(d => d.number).join(', ')}] · ${$store.wm.emptyDesktops.length} sin actividad`"></span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main">
+            <header class="main-header">
+                <h2 class="title">
+                    Escritorio
+                    <span x-text="$store.wm.activeDesktop ? `${$store.wm.activeDesktop.number}: ${$store.wm.activeDesktop.name}` : 'sin datos'"></span>
+                </h2>
+                <div class="badges">
+                    <div class="badge" x-text="`${$store.wm.windowCount} ventanas`"></div>
+                    <div class="badge" x-text="$store.wm.mode === 'live' ? ($store.wm.online ? 'live · online' : 'live · reconectando') : 'mock'"></div>
+                </div>
+            </header>
+
+            <div class="controls">
+                <button class="control-btn" :class="{ 'active': $store.wm.mode === 'mock' }" @click="$store.wm.setMode('mock')">Modo mock</button>
+                <button class="control-btn" :class="{ 'active': $store.wm.mode === 'live' }" @click="$store.wm.setMode('live')">Modo live</button>
+                <button class="control-btn" :class="{ 'active': $store.wm.showNoise }" @click="$store.wm.toggleNoise()">Noise</button>
+                <button class="control-btn" :class="{ 'active': $store.wm.debug }" @click="$store.wm.toggleDebug()">Debug</button>
+            </div>
+
+            <section class="content" x-show="$store.wm.activeDesktop">
+                <div class="grid" x-data="{ b: $store.wm.activeDesktopSemanticBuckets || {} }" x-effect="b = $store.wm.activeDesktopSemanticBuckets || {}">
+                    <article class="panel full">
+                        <div class="panel-header">Terminal & ejecución</div>
+                        <div class="panel-body">
+                            <template x-if="(b.terminal || []).length === 0">
+                                <div class="empty">Sin terminales activas</div>
+                            </template>
+                            <template x-for="window in (b.terminal || [])" :key="window.hwnd">
+                                <div class="item" :class="{ 'anchor': window.isAnchor }">
+                                    <span class="item-dot"></span>
+                                    <div>
+                                        <div x-text="window.displayTitle"></div>
+                                        <div class="item-sub" x-show="window.terminalName" x-text="window.terminalName"></div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </article>
+
+                    <article class="panel">
+                        <div class="panel-header">Código & herramientas</div>
+                        <div class="panel-body">
+                            <template x-if="(b.code || []).length === 0">
+                                <div class="empty">Sin ventanas de código</div>
+                            </template>
+                            <template x-for="window in (b.code || [])" :key="window.hwnd">
+                                <div class="item">
+                                    <span class="item-dot" style="background:#60a5fa"></span>
+                                    <div x-text="window.displayTitle"></div>
+                                </div>
+                            </template>
+                        </div>
+                    </article>
+
+                    <article class="panel">
+                        <div class="panel-header">Web & web-app</div>
+                        <div class="panel-body">
+                            <div class="sub-block">
+                                <div class="sub-title">Web-app</div>
+                                <template x-if="(b.webApp || []).length === 0"><div class="empty">Sin web-apps</div></template>
+                                <template x-for="window in (b.webApp || [])" :key="window.hwnd">
+                                    <div class="item"><span class="item-dot" style="background:#a78bfa"></span><div x-text="window.displayTitle"></div></div>
+                                </template>
+                            </div>
+                            <div class="sub-block">
+                                <div class="sub-title">Navegación</div>
+                                <template x-if="(b.webNavigation || []).length === 0"><div class="empty">Sin navegación</div></template>
+                                <template x-for="window in (b.webNavigation || [])" :key="window.hwnd">
+                                    <div class="item meta"><span class="item-dot"></span><div x-text="window.displayTitle"></div></div>
+                                </template>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="panel">
+                        <div class="panel-header">Files</div>
+                        <div class="panel-body">
+                            <template x-if="(b.files || []).length === 0"><div class="empty">Sin exploradores activos</div></template>
+                            <template x-for="window in (b.files || [])" :key="window.hwnd"><div class="item"><span class="item-dot"></span><div x-text="window.displayTitle"></div></div></template>
+                        </div>
+                    </article>
+
+                    <article class="panel">
+                        <div class="panel-header">Comms</div>
+                        <div class="panel-body">
+                            <template x-if="(b.comms || []).length === 0"><div class="empty">Sin comunicación activa</div></template>
+                            <template x-for="window in (b.comms || [])" :key="window.hwnd"><div class="item"><span class="item-dot"></span><div x-text="window.displayTitle"></div></div></template>
+                        </div>
+                    </article>
+
+                    <article class="panel" x-show="$store.wm.showNoise">
+                        <div class="panel-header">System / noise</div>
+                        <div class="panel-body">
+                            <template x-if="(b.system || []).length === 0"><div class="empty">Sin ruido relevante</div></template>
+                            <template x-for="window in (b.system || [])" :key="window.hwnd"><div class="item meta"><span class="item-dot"></span><div x-text="window.displayTitle"></div></div></template>
+                        </div>
+                    </article>
+                </div>
+
+                <section class="debug" x-show="$store.wm.debug">
+                    <div><strong>Modo:</strong> <span x-text="$store.wm.mode"></span> · <strong>lastUpdate:</strong> <span x-text="$store.wm.lastUpdate || 'n/a'"></span></div>
+                    <div><strong>desktopCount:</strong> <span x-text="$store.wm.desktopCount"></span> · <strong>windowCount:</strong> <span x-text="$store.wm.windowCount"></span></div>
+                    <div><strong>SSE error:</strong> <span x-text="$store.wm.sseError || 'none'"></span></div>
+                    <div><strong>Error:</strong> <span x-text="$store.wm.error || 'none'"></span></div>
+                    <details>
+                        <summary>Raw payload</summary>
+                        <pre x-text="JSON.stringify($store.wm.raw, null, 2)"></pre>
+                    </details>
+                    <details>
+                        <summary>Normalized desktops</summary>
+                        <pre x-text="JSON.stringify($store.wm.normalized.desktops, null, 2)"></pre>
+                    </details>
+                </section>
+            </section>
+        </main>
     </div>
-
-    <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('workspaceMonitor', () => ({
-                desktops: [],
-                windows: [],
-                terminals: [],
-                eventSource: null,
-
-                init() {
-                    this.connectSSE();
-                },
-
-                connectSSE() {
-                    this.eventSource = new EventSource('/events');
-                    
-                    this.eventSource.onmessage = (event) => {
-                        try {
-                            const data = JSON.parse(event.data);
-                            this.desktops = data.desktops || [];
-                            this.windows = data.windows || [];
-                            this.terminals = data.terminals || [];
-                        } catch (e) {
-                            console.error("Failed to parse SSE payload", e);
-                        }
-                    };
-
-                    this.eventSource.onerror = (err) => {
-                        console.error("SSE connection error", err);
-                        // EventSource automatically reconnects, but we log the error
-                    };
-                },
-
-                getWindowsForDesktop(desktopId) {
-                    return this.windows.filter(w => w.desktop_id === desktopId);
-                },
-
-                getTerminalName(pid) {
-                    if (!pid) return null;
-                    const term = this.terminals.find(t => t.pid === pid);
-                    if (term) {
-                        return term.custom_name || term.name;
-                    }
-                    return null;
-                }
-            }))
-        })
-    </script>
 </body>
 </html>
