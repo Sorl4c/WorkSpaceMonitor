@@ -1,0 +1,1258 @@
+﻿{
+    "terminals":  {
+                      "value":  [
+                                    {
+                                        "pid":  696,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  4856,
+                                        "name":  "WindowsTerminal.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  5720,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  7292,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  7616,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  12856,
+                                        "name":  "cmd.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  14676,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  16076,
+                                        "name":  "cmd.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  23924,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  24276,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  26196,
+                                        "name":  "cmd.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  27480,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  31152,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  33812,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  34568,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  36092,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  36884,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  37704,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  38428,
+                                        "name":  "cmd.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  39028,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  39308,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  40028,
+                                        "name":  "cmd.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  42420,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  43072,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  43144,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  43208,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  47032,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  52028,
+                                        "name":  "cmd.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  53216,
+                                        "name":  "cmd.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  53888,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  57460,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  57736,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  58456,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  61044,
+                                        "name":  "cmd.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  62096,
+                                        "name":  "cmd.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  63776,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  64896,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  67016,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  67568,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  69384,
+                                        "name":  "cmd.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  70220,
+                                        "name":  "cmd.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  70268,
+                                        "name":  "cmd.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  72996,
+                                        "name":  "cmd.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  73228,
+                                        "name":  "cmd.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  73620,
+                                        "name":  "cmd.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  74012,
+                                        "name":  "cmd.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  74100,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  76128,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  77228,
+                                        "name":  "cmd.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  78216,
+                                        "name":  "cmd.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  79532,
+                                        "name":  "cmd.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  80284,
+                                        "name":  "cmd.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  81212,
+                                        "name":  "powershell.exe",
+                                        "custom_name":  null
+                                    },
+                                    {
+                                        "pid":  82284,
+                                        "name":  "cmd.exe",
+                                        "custom_name":  null
+                                    }
+                                ],
+                      "Count":  54
+                  },
+    "timestamp":  "2026-03-07T15:48:07Z",
+    "desktops":  {
+                     "value":  [
+                                   {
+                                       "id":  "{19B61ABB-0A98-48DB-9138-6B83274C00F4}",
+                                       "number":  1,
+                                       "name":  ""
+                                   },
+                                   {
+                                       "id":  "{2ADEF147-D029-4957-921F-65CE2DE26330}",
+                                       "number":  2,
+                                       "name":  ""
+                                   },
+                                   {
+                                       "id":  "{9DED1818-BCED-4A62-AA46-44CE3162AC29}",
+                                       "number":  3,
+                                       "name":  ""
+                                   },
+                                   {
+                                       "id":  "{CBE2EE92-68DF-4D12-BFA6-AA5957AAF5E5}",
+                                       "number":  4,
+                                       "name":  ""
+                                   },
+                                   {
+                                       "id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                       "number":  5,
+                                       "name":  ""
+                                   },
+                                   {
+                                       "id":  "{9A3097F3-A160-41FD-B51A-DC129D8B8847}",
+                                       "number":  6,
+                                       "name":  ""
+                                   },
+                                   {
+                                       "id":  "{C509EE66-092B-4587-890B-F33DCFFA89EC}",
+                                       "number":  7,
+                                       "name":  ""
+                                   },
+                                   {
+                                       "id":  "{F5CA0046-4F84-478F-94C4-3B4E7768BFD9}",
+                                       "number":  8,
+                                       "name":  ""
+                                   },
+                                   {
+                                       "id":  "{9D6ED47A-E295-43C1-A80E-D3986EB7BE7D}",
+                                       "number":  9,
+                                       "name":  ""
+                                   },
+                                   {
+                                       "id":  "{F31B8DD1-8C9C-4ED0-A7AF-5E19FCBEC137}",
+                                       "number":  10,
+                                       "name":  ""
+                                   },
+                                   {
+                                       "id":  "{331492E1-B0C5-4372-8755-BBD53C966E3E}",
+                                       "number":  11,
+                                       "name":  ""
+                                   },
+                                   {
+                                       "id":  "{29090D1C-6A20-4D37-9129-03C13260CE4A}",
+                                       "number":  12,
+                                       "name":  "OpenClaw"
+                                   },
+                                   {
+                                       "id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                       "number":  13,
+                                       "name":  "KDS"
+                                   },
+                                   {
+                                       "id":  "{2041DD79-94FC-48C6-87B7-EAD8BBDBF199}",
+                                       "number":  14,
+                                       "name":  ""
+                                   }
+                               ],
+                     "Count":  14
+                 },
+    "windows":  {
+                    "value":  [
+                                  {
+                                      "hwnd":  48961334,
+                                      "title":  "Perplexity - La UI nueva estÃ¡ mucho mÃ¡s cerca de la idea de âmapa mentalâ, pero sigues...",
+                                      "desktop_id":  "{2041DD79-94FC-48C6-87B7-EAD8BBDBF199}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  983166,
+                                      "title":  "react-base.md - WorkspaceMonitor - Visual Studio Code",
+                                      "desktop_id":  "{2041DD79-94FC-48C6-87B7-EAD8BBDBF199}",
+                                      "pid":  17072
+                                  },
+                                  {
+                                      "hwnd":  1388800,
+                                      "title":  "Windows PowerShell",
+                                      "desktop_id":  "{2041DD79-94FC-48C6-87B7-EAD8BBDBF199}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  2823274,
+                                      "title":  "WhatsApp",
+                                      "desktop_id":  "{2041DD79-94FC-48C6-87B7-EAD8BBDBF199}",
+                                      "pid":  51080
+                                  },
+                                  {
+                                      "hwnd":  1119596,
+                                      "title":  "pos_simulator.php - comandas-kds - Visual Studio Code",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  17072
+                                  },
+                                  {
+                                      "hwnd":  1842036,
+                                      "title":  "â  Ready (comandas-kds)                                                         ",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  1318686,
+                                      "title":  "Google Gemini",
+                                      "desktop_id":  "{2041DD79-94FC-48C6-87B7-EAD8BBDBF199}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  5046958,
+                                      "title":  "WhisperTyping",
+                                      "desktop_id":  "{2041DD79-94FC-48C6-87B7-EAD8BBDBF199}",
+                                      "pid":  54900
+                                  },
+                                  {
+                                      "hwnd":  1908348,
+                                      "title":  "Â¿Traducir pÃ¡gina de inglÃ©s?",
+                                      "desktop_id":  "{00000000-0000-0000-0000-000000000000}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  15538600,
+                                      "title":  "Consuming StreamingResponse with chunksize=None in pytest leads to infinite loop Â· Issue #2386 Â· fastapi/fastapi y 11 pÃ¡ginas mÃ¡s - Personal: Microsoftâ Edge",
+                                      "desktop_id":  "{2041DD79-94FC-48C6-87B7-EAD8BBDBF199}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  597630,
+                                      "title":  "Google Gemini",
+                                      "desktop_id":  "{2041DD79-94FC-48C6-87B7-EAD8BBDBF199}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  859896,
+                                      "title":  "Google Gemini",
+                                      "desktop_id":  "{2041DD79-94FC-48C6-87B7-EAD8BBDBF199}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  791162,
+                                      "title":  "Cloud Player de Audible - Comet",
+                                      "desktop_id":  "{29090D1C-6A20-4D37-9129-03C13260CE4A}",
+                                      "pid":  66312
+                                  },
+                                  {
+                                      "hwnd":  1777498,
+                                      "title":  "ActualizaciÃ³n de versiÃ³n",
+                                      "desktop_id":  "{00000000-0000-0000-0000-000000000000}",
+                                      "pid":  35584
+                                  },
+                                  {
+                                      "hwnd":  5386490,
+                                      "title":  "Tip of the day",
+                                      "desktop_id":  "{00000000-0000-0000-0000-000000000000}",
+                                      "pid":  35584
+                                  },
+                                  {
+                                      "hwnd":  1577492,
+                                      "title":  "DBeaver 25.3.3",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  35584
+                                  },
+                                  {
+                                      "hwnd":  3213844,
+                                      "title":  "NotebookLM",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  4075138,
+                                      "title":  "C:\\WINDOWS\\SYSTEM32\\cmd.exe",
+                                      "desktop_id":  "{2041DD79-94FC-48C6-87B7-EAD8BBDBF199}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  6363508,
+                                      "title":  "ChatGPT - OrganizaciÃ³n y UI eficiente",
+                                      "desktop_id":  "{2041DD79-94FC-48C6-87B7-EAD8BBDBF199}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  14423224,
+                                      "title":  "Google Gemini",
+                                      "desktop_id":  "{2041DD79-94FC-48C6-87B7-EAD8BBDBF199}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  4792050,
+                                      "title":  "Google Gemini",
+                                      "desktop_id":  "{2041DD79-94FC-48C6-87B7-EAD8BBDBF199}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  13762684,
+                                      "title":  "*nuevo2 - Notepad++",
+                                      "desktop_id":  "{2041DD79-94FC-48C6-87B7-EAD8BBDBF199}",
+                                      "pid":  14628
+                                  },
+                                  {
+                                      "hwnd":  11147722,
+                                      "title":  "Perplexity",
+                                      "desktop_id":  "{2041DD79-94FC-48C6-87B7-EAD8BBDBF199}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  23794918,
+                                      "title":  "docs - Explorador de archivos",
+                                      "desktop_id":  "{2041DD79-94FC-48C6-87B7-EAD8BBDBF199}",
+                                      "pid":  11672
+                                  },
+                                  {
+                                      "hwnd":  1651204,
+                                      "title":  "view-source:localhost:8080 - Comet",
+                                      "desktop_id":  "{2041DD79-94FC-48C6-87B7-EAD8BBDBF199}",
+                                      "pid":  66312
+                                  },
+                                  {
+                                      "hwnd":  10689320,
+                                      "title":  "Windows PowerShell",
+                                      "desktop_id":  "{2041DD79-94FC-48C6-87B7-EAD8BBDBF199}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  598618,
+                                      "title":  "POS Simulator - Comet",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  66312
+                                  },
+                                  {
+                                      "hwnd":  10490512,
+                                      "title":  "Estoy buscando una extensiÃ³n para VS Code que haga que se atenÃºen las clases... - Comet",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  66312
+                                  },
+                                  {
+                                      "hwnd":  2559220,
+                                      "title":  "Logs | OpenRouter - Comet",
+                                      "desktop_id":  "{331492E1-B0C5-4372-8755-BBD53C966E3E}",
+                                      "pid":  66312
+                                  },
+                                  {
+                                      "hwnd":  864896,
+                                      "title":  "Perplexity - Comet",
+                                      "desktop_id":  "{29090D1C-6A20-4D37-9129-03C13260CE4A}",
+                                      "pid":  66312
+                                  },
+                                  {
+                                      "hwnd":  1777720,
+                                      "title":  "Telegram - Comet",
+                                      "desktop_id":  "{C509EE66-092B-4587-890B-F33DCFFA89EC}",
+                                      "pid":  66312
+                                  },
+                                  {
+                                      "hwnd":  5313628,
+                                      "title":  "Telegram - Comet",
+                                      "desktop_id":  "{C509EE66-092B-4587-890B-F33DCFFA89EC}",
+                                      "pid":  66312
+                                  },
+                                  {
+                                      "hwnd":  7347140,
+                                      "title":  "Telegram - Comet",
+                                      "desktop_id":  "{C509EE66-092B-4587-890B-F33DCFFA89EC}",
+                                      "pid":  66312
+                                  },
+                                  {
+                                      "hwnd":  1639808,
+                                      "title":  "Telegram - Comet",
+                                      "desktop_id":  "{C509EE66-092B-4587-890B-F33DCFFA89EC}",
+                                      "pid":  66312
+                                  },
+                                  {
+                                      "hwnd":  10552760,
+                                      "title":  "Telegram - Comet",
+                                      "desktop_id":  "{C509EE66-092B-4587-890B-F33DCFFA89EC}",
+                                      "pid":  66312
+                                  },
+                                  {
+                                      "hwnd":  460036,
+                                      "title":  "OpenClaw âº 01-gym-tracker - Comet",
+                                      "desktop_id":  "{C509EE66-092B-4587-890B-F33DCFFA89EC}",
+                                      "pid":  66312
+                                  },
+                                  {
+                                      "hwnd":  19077780,
+                                      "title":  "OpenClaw âº 00-central-orquestaciÃ³n - Comet",
+                                      "desktop_id":  "{C509EE66-092B-4587-890B-F33DCFFA89EC}",
+                                      "pid":  66312
+                                  },
+                                  {
+                                      "hwnd":  857884,
+                                      "title":  "Gentleman-Programming - Comet",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  66312
+                                  },
+                                  {
+                                      "hwnd":  2299832,
+                                      "title":  "Why the Best AI Coding Tools Abandoned RAG (And What They Use Instead) - YouTube - Comet",
+                                      "desktop_id":  "{CBE2EE92-68DF-4D12-BFA6-AA5957AAF5E5}",
+                                      "pid":  66312
+                                  },
+                                  {
+                                      "hwnd":  984974,
+                                      "title":  "Telegram A",
+                                      "desktop_id":  "{29090D1C-6A20-4D37-9129-03C13260CE4A}",
+                                      "pid":  37468
+                                  },
+                                  {
+                                      "hwnd":  4200074,
+                                      "title":  "Follow Alpine first macro refactor plan y 8 pÃ¡ginas mÃ¡s - Personal: Microsoftâ Edge",
+                                      "desktop_id":  "{29090D1C-6A20-4D37-9129-03C13260CE4A}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  5713440,
+                                      "title":  "ConfiguraciÃ³n",
+                                      "desktop_id":  "{2041DD79-94FC-48C6-87B7-EAD8BBDBF199}",
+                                      "pid":  7592
+                                  },
+                                  {
+                                      "hwnd":  1049580,
+                                      "title":  "Form1",
+                                      "desktop_id":  "{00000000-0000-0000-0000-000000000000}",
+                                      "pid":  80500
+                                  },
+                                  {
+                                      "hwnd":  40245080,
+                                      "title":  "Perplexity - como uso codex web para no gastar los tokens de cli",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  2044656,
+                                      "title":  "Windows PowerShell",
+                                      "desktop_id":  "{29090D1C-6A20-4D37-9129-03C13260CE4A}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  12660616,
+                                      "title":  "Windows PowerShell",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  13048246,
+                                      "title":  "Google Gemini",
+                                      "desktop_id":  "{29090D1C-6A20-4D37-9129-03C13260CE4A}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  26745288,
+                                      "title":  "Perplexity",
+                                      "desktop_id":  "{29090D1C-6A20-4D37-9129-03C13260CE4A}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  3412952,
+                                      "title":  "Google Gemini",
+                                      "desktop_id":  "{331492E1-B0C5-4372-8755-BBD53C966E3E}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  1257668,
+                                      "title":  "gemini - Explorador de archivos",
+                                      "desktop_id":  "{F31B8DD1-8C9C-4ED0-A7AF-5E19FCBEC137}",
+                                      "pid":  11672
+                                  },
+                                  {
+                                      "hwnd":  732936,
+                                      "title":  "â  Ready (local-tts-service)                                                    ",
+                                      "desktop_id":  "{F5CA0046-4F84-478F-94C4-3B4E7768BFD9}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  8133570,
+                                      "title":  "C:\\WINDOWS\\system32\\cmd.exe ",
+                                      "desktop_id":  "{9A3097F3-A160-41FD-B51A-DC129D8B8847}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  8723102,
+                                      "title":  "â  Ready (gemini)                                                               ",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  3020494,
+                                      "title":  "Windows PowerShell",
+                                      "desktop_id":  "{CBE2EE92-68DF-4D12-BFA6-AA5957AAF5E5}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  11482330,
+                                      "title":  "Administrador de tareas",
+                                      "desktop_id":  "{9DED1818-BCED-4A62-AA46-44CE3162AC29}",
+                                      "pid":  19176
+                                  },
+                                  {
+                                      "hwnd":  1509522,
+                                      "title":  "Telegram: Join Group Chat y 5 pÃ¡ginas mÃ¡s - Personal: Microsoftâ Edge",
+                                      "desktop_id":  "{29090D1C-6A20-4D37-9129-03C13260CE4A}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  6687968,
+                                      "title":  "Telegram Web y 3 pÃ¡ginas mÃ¡s - Personal: Microsoftâ Edge",
+                                      "desktop_id":  "{29090D1C-6A20-4D37-9129-03C13260CE4A}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  3277458,
+                                      "title":  "Ubuntu 64-bit - VMware Workstation",
+                                      "desktop_id":  "{29090D1C-6A20-4D37-9129-03C13260CE4A}",
+                                      "pid":  35688
+                                  },
+                                  {
+                                      "hwnd":  1519734,
+                                      "title":  "Perplexity",
+                                      "desktop_id":  "{29090D1C-6A20-4D37-9129-03C13260CE4A}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  7932714,
+                                      "title":  "Gmail",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  6365422,
+                                      "title":  "Microsoft Store",
+                                      "desktop_id":  "{29090D1C-6A20-4D37-9129-03C13260CE4A}",
+                                      "pid":  7592
+                                  },
+                                  {
+                                      "hwnd":  11995952,
+                                      "title":  "Codex: descarga e instalaciÃ³n gratuitas en Windows | Microsoft Store y 3 pÃ¡ginas mÃ¡s - Personal: Microsoftâ Edge",
+                                      "desktop_id":  "{29090D1C-6A20-4D37-9129-03C13260CE4A}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  1313640,
+                                      "title":  "tracking-entrenamientos - Explorador de archivos",
+                                      "desktop_id":  "{2ADEF147-D029-4957-921F-65CE2DE26330}",
+                                      "pid":  11672
+                                  },
+                                  {
+                                      "hwnd":  1575736,
+                                      "title":  "DBeaver 25.3.3 - comandas",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  84100
+                                  },
+                                  {
+                                      "hwnd":  8852428,
+                                      "title":  "XAMPP Control Panel v3.3.0   [ Compiled: Apr 6th 2021 ]",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  50192
+                                  },
+                                  {
+                                      "hwnd":  16715670,
+                                      "title":  "view-source:https://alpinejs.dev/component/dropdown#new y 8 pÃ¡ginas mÃ¡s - Personal: Microsoftâ Edge",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  3678238,
+                                      "title":  "Perplexity",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  36769634,
+                                      "title":  "Pricing - Simple Plans Starting from $6/month | Second Brain - Comet",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  66312
+                                  },
+                                  {
+                                      "hwnd":  18483386,
+                                      "title":  "Reproductor multimedia",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  51716
+                                  },
+                                  {
+                                      "hwnd":  20591950,
+                                      "title":  "Issues Â· hexgrad/kokoro - Comet",
+                                      "desktop_id":  "{F5CA0046-4F84-478F-94C4-3B4E7768BFD9}",
+                                      "pid":  66312
+                                  },
+                                  {
+                                      "hwnd":  8138742,
+                                      "title":  "sorl4c.dpdns.org - Comet",
+                                      "desktop_id":  "{F5CA0046-4F84-478F-94C4-3B4E7768BFD9}",
+                                      "pid":  66312
+                                  },
+                                  {
+                                      "hwnd":  1515798,
+                                      "title":  "ChatGPT - Comet",
+                                      "desktop_id":  "{9DED1818-BCED-4A62-AA46-44CE3162AC29}",
+                                      "pid":  66312
+                                  },
+                                  {
+                                      "hwnd":  35461672,
+                                      "title":  "chrome-extension://laameccjpleogmfhilmffpdbiibgbekf/suspended.html?title=\u0026url=http%3A%2F%2Flocalhost%3A8080%2Fwindows\u0026time=1772893778058 - Comet",
+                                      "desktop_id":  "{2041DD79-94FC-48C6-87B7-EAD8BBDBF199}",
+                                      "pid":  66312
+                                  },
+                                  {
+                                      "hwnd":  8852092,
+                                      "title":  "Microsoft Store",
+                                      "desktop_id":  "{29090D1C-6A20-4D37-9129-03C13260CE4A}",
+                                      "pid":  26860
+                                  },
+                                  {
+                                      "hwnd":  2167328,
+                                      "title":  "node_modules - Explorador de archivos",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  11672
+                                  },
+                                  {
+                                      "hwnd":  3149176,
+                                      "title":  "comandas-kds - Explorador de archivos",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  11672
+                                  },
+                                  {
+                                      "hwnd":  26157006,
+                                      "title":  "Gmail",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  3351046,
+                                      "title":  "NVIDIA GeForce Overlay",
+                                      "desktop_id":  null,
+                                      "pid":  35940
+                                  },
+                                  {
+                                      "hwnd":  863396,
+                                      "title":  "Sin tÃ­tulo (Recuperado) - Paint",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  65272
+                                  },
+                                  {
+                                      "hwnd":  9768800,
+                                      "title":  "*ActÃºa como mentor tÃ©cnico senior de: Bloc de notas",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  15396
+                                  },
+                                  {
+                                      "hwnd":  2361512,
+                                      "title":  "Perplexity",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  336098,
+                                      "title":  "Perplexity",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  5512200,
+                                      "title":  "Windows PowerShell",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  1704854,
+                                      "title":  "gemini - Explorador de archivos",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  11672
+                                  },
+                                  {
+                                      "hwnd":  405428,
+                                      "title":  "AGENTS.md - gemini - Visual Studio Code",
+                                      "desktop_id":  "{9DED1818-BCED-4A62-AA46-44CE3162AC29}",
+                                      "pid":  17072
+                                  },
+                                  {
+                                      "hwnd":  987076,
+                                      "title":  ".env - tracking-entrenamientos - Visual Studio Code",
+                                      "desktop_id":  "{9DED1818-BCED-4A62-AA46-44CE3162AC29}",
+                                      "pid":  17072
+                                  },
+                                  {
+                                      "hwnd":  10825912,
+                                      "title":  "Windows PowerShell",
+                                      "desktop_id":  "{9DED1818-BCED-4A62-AA46-44CE3162AC29}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  3474224,
+                                      "title":  "#testimoniosð§¾ | DSPRO TRADING ROOM - Discord",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  66572
+                                  },
+                                  {
+                                      "hwnd":  1257152,
+                                      "title":  "reproductor.jpg - local-tts-service - Visual Studio Code",
+                                      "desktop_id":  "{9DED1818-BCED-4A62-AA46-44CE3162AC29}",
+                                      "pid":  17072
+                                  },
+                                  {
+                                      "hwnd":  1053892,
+                                      "title":  "Perplexity",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  3084180,
+                                      "title":  "Perplexity",
+                                      "desktop_id":  "{CBE2EE92-68DF-4D12-BFA6-AA5957AAF5E5}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  5386192,
+                                      "title":  "Windows PowerShell",
+                                      "desktop_id":  "{F5CA0046-4F84-478F-94C4-3B4E7768BFD9}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  854010,
+                                      "title":  "WhisperTyping",
+                                      "desktop_id":  "{FB850135-B612-4A90-86E5-91ABDC85FE49}",
+                                      "pid":  54900
+                                  },
+                                  {
+                                      "hwnd":  7082804,
+                                      "title":  "Google Gemini",
+                                      "desktop_id":  "{9DED1818-BCED-4A62-AA46-44CE3162AC29}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  7941876,
+                                      "title":  "Perplexity",
+                                      "desktop_id":  "{331492E1-B0C5-4372-8755-BBD53C966E3E}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  1705878,
+                                      "title":  "Google Gemini",
+                                      "desktop_id":  "{CBE2EE92-68DF-4D12-BFA6-AA5957AAF5E5}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  2758038,
+                                      "title":  "NotebookLM",
+                                      "desktop_id":  "{9DED1818-BCED-4A62-AA46-44CE3162AC29}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  332570,
+                                      "title":  "NotebookLM - La Voz Curiosa: DiÃ¡logo Interno contra la ProcrastinaciÃ³n - NotebookLM",
+                                      "desktop_id":  "{2ADEF147-D029-4957-921F-65CE2DE26330}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  922046,
+                                      "title":  "Windows PowerShell",
+                                      "desktop_id":  "{9DED1818-BCED-4A62-AA46-44CE3162AC29}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  8786012,
+                                      "title":  "GymTrack API - python  launch_api.py",
+                                      "desktop_id":  "{2ADEF147-D029-4957-921F-65CE2DE26330}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  3543128,
+                                      "title":  "feat(tray-tts): add Qt tray app and polish popup behavior Â· Sorl4c/local-tts-microservice@3650d17 - Personal: Microsoftâ Edge",
+                                      "desktop_id":  "{2ADEF147-D029-4957-921F-65CE2DE26330}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  5836358,
+                                      "title":  "â  Ready (tracking-entrenamientos)                                              ",
+                                      "desktop_id":  "{2ADEF147-D029-4957-921F-65CE2DE26330}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  3290072,
+                                      "title":  "root@CAAB-PC: /mnt/c/local/microservicios/local-tts-service",
+                                      "desktop_id":  "{9DED1818-BCED-4A62-AA46-44CE3162AC29}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  4206440,
+                                      "title":  "transcript_fastz.md - excalidraw - Visual Studio Code",
+                                      "desktop_id":  "{9DED1818-BCED-4A62-AA46-44CE3162AC29}",
+                                      "pid":  17072
+                                  },
+                                  {
+                                      "hwnd":  8526324,
+                                      "title":  "rom - Explorador de archivos",
+                                      "desktop_id":  "{9DED1818-BCED-4A62-AA46-44CE3162AC29}",
+                                      "pid":  11672
+                                  },
+                                  {
+                                      "hwnd":  398738,
+                                      "title":  "Perplexity",
+                                      "desktop_id":  "{9DED1818-BCED-4A62-AA46-44CE3162AC29}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  990136,
+                                      "title":  "Windows PowerShell",
+                                      "desktop_id":  "{CBE2EE92-68DF-4D12-BFA6-AA5957AAF5E5}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  528350,
+                                      "title":  "excalidraw y 1 pestaÃ±a mÃ¡s - Explorador de archivos",
+                                      "desktop_id":  "{9DED1818-BCED-4A62-AA46-44CE3162AC29}",
+                                      "pid":  11672
+                                  },
+                                  {
+                                      "hwnd":  15407862,
+                                      "title":  "sorlacopenclaw-collab y 3 pÃ¡ginas mÃ¡s - [InPrivate]: Microsoftâ Edge",
+                                      "desktop_id":  "{2ADEF147-D029-4957-921F-65CE2DE26330}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  11540630,
+                                      "title":  "Propiedades de local-tts-service",
+                                      "desktop_id":  "{9DED1818-BCED-4A62-AA46-44CE3162AC29}",
+                                      "pid":  11672
+                                  },
+                                  {
+                                      "hwnd":  5125218,
+                                      "title":  "â  Ready (local-tts-service)                                                    ",
+                                      "desktop_id":  "{9DED1818-BCED-4A62-AA46-44CE3162AC29}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  2240228,
+                                      "title":  "output - Explorador de archivos",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  11672
+                                  },
+                                  {
+                                      "hwnd":  15993560,
+                                      "title":  "GymTrack Bot - python  -m src.services.telegram_bot",
+                                      "desktop_id":  "{2ADEF147-D029-4957-921F-65CE2DE26330}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  2110766,
+                                      "title":  "Cloudflare Tunnel - \"C:\\Users\\carlos\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Cloudflare.cloudflared_Microsoft.Winget.Source_8wekyb3d8bbwe\\cloudflared.exe\"  tunnel run --url http://localhost:8000 gymtracker",
+                                      "desktop_id":  "{2ADEF147-D029-4957-921F-65CE2DE26330}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  2044322,
+                                      "title":  "GymTrack Services Launcher",
+                                      "desktop_id":  "{2ADEF147-D029-4957-921F-65CE2DE26330}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  3086940,
+                                      "title":  "Google Gemini",
+                                      "desktop_id":  "{2ADEF147-D029-4957-921F-65CE2DE26330}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  865314,
+                                      "title":  "Infinitas Mentes - [InPrivate]: Microsoftâ Edge",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  2495676,
+                                      "title":  "Gmail - Resultados de la bÃºsqueda - sorl4c@gmail.com - Gmail",
+                                      "desktop_id":  "{29090D1C-6A20-4D37-9129-03C13260CE4A}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  5904962,
+                                      "title":  "gemini - Explorador de archivos",
+                                      "desktop_id":  "{9A3097F3-A160-41FD-B51A-DC129D8B8847}",
+                                      "pid":  11672
+                                  },
+                                  {
+                                      "hwnd":  38214298,
+                                      "title":  "NotebookLM",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  531170,
+                                      "title":  "â  Ready (gemini)                                                               ",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  2174914,
+                                      "title":  "Reproductor multimedia",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  7592
+                                  },
+                                  {
+                                      "hwnd":  3157712,
+                                      "title":  "Descargas - Explorador de archivos",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  11672
+                                  },
+                                  {
+                                      "hwnd":  3610228,
+                                      "title":  "Infinitas Mentes y 4 pÃ¡ginas mÃ¡s - Personal: Microsoftâ Edge",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  4927420,
+                                      "title":  "input - Explorador de archivos",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  11672
+                                  },
+                                  {
+                                      "hwnd":  9317776,
+                                      "title":  "Descargas - Explorador de archivos",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  11672
+                                  },
+                                  {
+                                      "hwnd":  14681440,
+                                      "title":  "Perplexity",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  209180,
+                                      "title":  "Infinitas Mentes y 4 pÃ¡ginas mÃ¡s - Personal: Microsoftâ Edge",
+                                      "desktop_id":  "{F31B8DD1-8C9C-4ED0-A7AF-5E19FCBEC137}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  406080,
+                                      "title":  "Perplexity",
+                                      "desktop_id":  "{331492E1-B0C5-4372-8755-BBD53C966E3E}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  8925090,
+                                      "title":  "Google Gemini",
+                                      "desktop_id":  "{331492E1-B0C5-4372-8755-BBD53C966E3E}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  12005532,
+                                      "title":  "â  Ready (local)                                                                ",
+                                      "desktop_id":  "{331492E1-B0C5-4372-8755-BBD53C966E3E}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  7474554,
+                                      "title":  "openclaw-share - Explorador de archivos",
+                                      "desktop_id":  "{29090D1C-6A20-4D37-9129-03C13260CE4A}",
+                                      "pid":  11672
+                                  },
+                                  {
+                                      "hwnd":  2371788,
+                                      "title":  "Descargas - Explorador de archivos",
+                                      "desktop_id":  "{29090D1C-6A20-4D37-9129-03C13260CE4A}",
+                                      "pid":  11672
+                                  },
+                                  {
+                                      "hwnd":  9574208,
+                                      "title":  "Google Gemini",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  2758740,
+                                      "title":  "Google Gemini",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  14095368,
+                                      "title":  "YouTube Music",
+                                      "desktop_id":  "{29090D1C-6A20-4D37-9129-03C13260CE4A}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  1584666,
+                                      "title":  "YouTube",
+                                      "desktop_id":  "{29090D1C-6A20-4D37-9129-03C13260CE4A}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  31397958,
+                                      "title":  "Opciones de energÃ­a",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  21864
+                                  },
+                                  {
+                                      "hwnd":  2953668,
+                                      "title":  "Windows PowerShell",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  267362,
+                                      "title":  "fras-ia-clean - Explorador de archivos",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  11672
+                                  },
+                                  {
+                                      "hwnd":  72934,
+                                      "title":  "*Queremos agregar tambiÃ©n funcionali: Bloc de notas",
+                                      "desktop_id":  "{F3161439-ACB3-444F-A069-3DD9BABC37F7}",
+                                      "pid":  15396
+                                  },
+                                  {
+                                      "hwnd":  5838038,
+                                      "title":  "Windows PowerShell",
+                                      "desktop_id":  "{CBE2EE92-68DF-4D12-BFA6-AA5957AAF5E5}",
+                                      "pid":  4856
+                                  },
+                                  {
+                                      "hwnd":  328770,
+                                      "title":  "C:\\local\\Agents\\ralph-wiggum\\gemini",
+                                      "desktop_id":  "{CBE2EE92-68DF-4D12-BFA6-AA5957AAF5E5}",
+                                      "pid":  9708
+                                  },
+                                  {
+                                      "hwnd":  1771878,
+                                      "title":  "Usa OPENCLAW para automatizar tu NEGOCIO de software - Tutorial Barato y RÃ¡pido - YouTube y 6 pÃ¡ginas mÃ¡s - Personal: Microsoftâ Edge",
+                                      "desktop_id":  "{CBE2EE92-68DF-4D12-BFA6-AA5957AAF5E5}",
+                                      "pid":  18044
+                                  },
+                                  {
+                                      "hwnd":  1769868,
+                                      "title":  "VMware Workstation - Explorador de archivos",
+                                      "desktop_id":  "{CBE2EE92-68DF-4D12-BFA6-AA5957AAF5E5}",
+                                      "pid":  11672
+                                  },
+                                  {
+                                      "hwnd":  1180842,
+                                      "title":  "gemini - Explorador de archivos",
+                                      "desktop_id":  "{CBE2EE92-68DF-4D12-BFA6-AA5957AAF5E5}",
+                                      "pid":  11672
+                                  },
+                                  {
+                                      "hwnd":  67308,
+                                      "title":  "Experiencia de entrada de Windows",
+                                      "desktop_id":  null,
+                                      "pid":  22288
+                                  },
+                                  {
+                                      "hwnd":  67520,
+                                      "title":  "Paleta de comandos",
+                                      "desktop_id":  "{00000000-0000-0000-0000-000000000000}",
+                                      "pid":  23052
+                                  },
+                                  {
+                                      "hwnd":  3803204,
+                                      "title":  "WhatsApp",
+                                      "desktop_id":  null,
+                                      "pid":  85276
+                                  },
+                                  {
+                                      "hwnd":  66116,
+                                      "title":  "Program Manager",
+                                      "desktop_id":  null,
+                                      "pid":  11672
+                                  }
+                              ],
+                    "Count":  150
+                }
+}
