@@ -8,3 +8,5 @@ def test_get_all_windows():
         assert "hwnd" in window
         assert "title" in window
         assert "desktop_id" in window
+        assert "pid" in window
+        assert isinstance(window["pid"], int)

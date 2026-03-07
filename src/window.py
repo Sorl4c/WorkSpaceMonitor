@@ -1,4 +1,5 @@
 import win32gui
+import win32process
 from pyvda import AppView
 
 def get_all_windows() -> list[dict]:
@@ -18,10 +19,13 @@ def get_all_windows() -> list[dict]:
         except Exception:
             desktop_id = None
             
+        _, pid = win32process.GetWindowThreadProcessId(hwnd)
+            
         windows.append({
             "hwnd": hwnd,
             "title": title,
-            "desktop_id": desktop_id
+            "desktop_id": desktop_id,
+            "pid": pid
         })
         
     win32gui.EnumWindows(enum_handler, None)

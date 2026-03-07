@@ -18,10 +18,10 @@ def test_read_desktops(mock_get_virtual_desktops):
 
 @patch('src.main.get_all_windows')
 def test_read_windows(mock_get_all_windows):
-    mock_get_all_windows.return_value = [{"hwnd": 123, "title": "Test Window", "desktop_id": "1"}]
+    mock_get_all_windows.return_value = [{"hwnd": 123, "title": "Test Window", "desktop_id": "1", "pid": 4567}]
     response = client.get("/windows")
     assert response.status_code == 200
-    assert response.json() == [{"hwnd": 123, "title": "Test Window", "desktop_id": "1"}]
+    assert response.json() == [{"hwnd": 123, "title": "Test Window", "desktop_id": "1", "pid": 4567}]
 
 @patch('src.main.detect_terminals')
 @patch('src.main.terminal_tracker.get_name')
