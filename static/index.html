@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workspace Monitor</title>
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --surface-color: #1e1e1e;
+            --text-color: #e0e0e0;
+            --text-muted: #888888;
+            --border-color: #333333;
+            --accent-color: #4CAF50;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .window-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .window-item {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 0.9rem;
+            cursor: default;
+        }
+
+        .window-item:last-child {
+            border-bottom: none;
+        }
+        
+        .window-item:hover {
+            color: #fff;
+        }
+
+        .meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-left: 0.5rem;
+        }
+
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body x-data="workspaceMonitor()">
+    <div class="container">
+        <header>
+            <h1>Workspace Monitor</h1>
+        </header>
+
+        <div class="grid" x-cloak>
+            <!-- Iterate over Desktops -->
+            <template x-for="desktop in desktops" :key="desktop.id">
+                <div class="card">
+                    <h2 x-text="desktop.name || 'Desktop ' + desktop.number"></h2>
+                    <ul class="window-list">
+                        <!-- Iterate over Windows belonging to this Desktop -->
+                        <template x-for="win in getWindowsForDesktop(desktop.id)" :key="win.hwnd">
+                            <li class="window-item" :title="win.title">
+                                <span x-text="win.title"></span>
+                                <!-- Show terminal name if matched -->
+                                <template x-if="getTerminalName(win.pid)">
+                                    <span class="meta" x-text="'[' + getTerminalName(win.pid) + ']'"></span>
+                                </template>
+                            </li>
+                        </template>
+                        <li class="window-item meta" x-show="getWindowsForDesktop(desktop.id).length === 0">
+                            No active windows
+                        </li>
+                    </ul>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('workspaceMonitor', () => ({
+                desktops: [],
+                windows: [],
+                terminals: [],
+                eventSource: null,
+
+                init() {
+                    this.connectSSE();
+                },
+
+                connectSSE() {
+                    this.eventSource = new EventSource('/events');
+                    
+                    this.eventSource.onmessage = (event) => {
+                        try {
+                            const data = JSON.parse(event.data);
+                            this.desktops = data.desktops || [];
+                            this.windows = data.windows || [];
+                            this.terminals = data.terminals || [];
+                        } catch (e) {
+                            console.error("Failed to parse SSE payload", e);
+                        }
+                    };
+
+                    this.eventSource.onerror = (err) => {
+                        console.error("SSE connection error", err);
+                        // EventSource automatically reconnects, but we log the error
+                    };
+                },
+
+                getWindowsForDesktop(desktopId) {
+                    return this.windows.filter(w => w.desktop_id === desktopId);
+                },
+
+                getTerminalName(pid) {
+                    if (!pid) return null;
+                    const term = this.terminals.find(t => t.pid === pid);
+                    if (term) {
+                        return term.custom_name || term.name;
+                    }
+                    return null;
+                }
+            }))
+        })
+    </script>
+</body>
+</html>

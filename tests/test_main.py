@@ -5,7 +5,7 @@ from unittest.mock import patch
 client = TestClient(app)
 
 def test_read_root():
-    response = client.get("/")
+    response = client.get("/api/status")
     assert response.status_code == 200
     assert response.json() == {"status": "running", "message": "Workspace Monitor Daemon"}
 

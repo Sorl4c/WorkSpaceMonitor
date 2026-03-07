@@ -1,4 +1,6 @@
 from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 import asyncio
@@ -34,7 +36,7 @@ async def event_generator(request: Request):
 async def sse_events(request: Request):
     return EventSourceResponse(event_generator(request))
 
-@app.get("/")
+@app.get("/api/status")
 def read_root():
     return {"status": "running", "message": "Workspace Monitor Daemon"}
 
@@ -65,4 +67,6 @@ def read_terminal(pid: int):
 def update_terminal(pid: int, request: TerminalNameRequest):
     terminal_tracker.set_name(pid, request.name)
     return {"pid": pid, "name": request.name}
+
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
