@@ -9,14 +9,14 @@
     - [ ] Sub-task: Implement Windows 11 virtual desktop querying logic
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Foundation and System Daemon' (Protocol in workflow.md) [8a7403c]
 
-## Phase 2: Window Enumeration and Terminal Tracking
+## Phase 2: Window Enumeration and Terminal Tracking [checkpoint: d9cc327]
 - [x] Task: Window Enumeration mapping [4a3b47c]
     - [ ] Sub-task: Write tests for window-to-desktop mapping logic
     - [ ] Sub-task: Implement window enumeration and filtering
 - [x] Task: Terminal process tracking [89c8e38]
     - [ ] Sub-task: Write tests for terminal detection and naming prompt logic
     - [ ] Sub-task: Implement tracking and manual naming feature
-- [~] Task: Conductor - User Manual Verification 'Phase 2: Window Enumeration and Terminal Tracking' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Window Enumeration and Terminal Tracking' (Protocol in workflow.md) [d9cc327]
     - [ ] Sub-task: Persist manual terminal labels in SQLite and restore them on subsequent detections when possible
 
 
