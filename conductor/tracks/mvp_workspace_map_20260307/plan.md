@@ -10,7 +10,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Foundation and System Daemon' (Protocol in workflow.md) [8a7403c]
 
 ## Phase 2: Window Enumeration and Terminal Tracking
-- [ ] Task: Window Enumeration mapping
+- [x] Task: Window Enumeration mapping [4a3b47c]
     - [ ] Sub-task: Write tests for window-to-desktop mapping logic
     - [ ] Sub-task: Implement window enumeration and filtering
 - [ ] Task: Terminal process tracking
