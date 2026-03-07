@@ -20,11 +20,11 @@
     - [ ] Sub-task: Persist manual terminal labels in SQLite and restore them on subsequent detections when possible
 
 
-## Phase 3: Dashboard and Real-time Updates
+## Phase 3: Dashboard and Real-time Updates [checkpoint: 3bdfc7a]
 - [x] Task: SSE implementation in FastAPI [2cf2809]
     - [ ] Sub-task: Write tests for SSE endpoint and event generation
     - [ ] Sub-task: Implement state diffing and event streaming
 - [x] Task: Alpine.js Web Dashboard [da170a3]
     - [ ] Sub-task: Write tests for frontend data models and SSE connection
     - [ ] Sub-task: Implement minimalist UI matching design guidelines
-- [~] Task: Conductor - User Manual Verification 'Phase 3: Dashboard and Real-time Updates' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Dashboard and Real-time Updates' (Protocol in workflow.md) [3bdfc7a]
