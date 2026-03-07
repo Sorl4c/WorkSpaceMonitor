@@ -1,7 +1,7 @@
 # Implementation Plan: MVP Workspace Map
 
 ## Phase 1: Foundation and System Daemon
-- [ ] Task: Project setup and FastAPI skeleton
+- [x] Task: Project setup and FastAPI skeleton [93ab9fb]
     - [ ] Sub-task: Write tests for basic API endpoints
     - [ ] Sub-task: Implement FastAPI server and tray icon boilerplate
 - [ ] Task: Virtual Desktop Discovery API integration
@@ -17,6 +17,8 @@
     - [ ] Sub-task: Write tests for terminal detection and naming prompt logic
     - [ ] Sub-task: Implement tracking and manual naming feature
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Window Enumeration and Terminal Tracking' (Protocol in workflow.md)
+    - [ ] Sub-task: Persist manual terminal labels in SQLite and restore them on subsequent detections when possible
+
 
 ## Phase 3: Dashboard and Real-time Updates
 - [ ] Task: SSE implementation in FastAPI
