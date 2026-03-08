@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.staticfiles import StaticFiles
 from sse_starlette.sse import EventSourceResponse
 import asyncio
@@ -94,6 +94,10 @@ async def sse_events(request: Request):
 @app.get("/api/status")
 def read_root():
     return {"status": "running", "message": "Workspace Monitor Daemon"}
+
+@app.get("/favicon.ico")
+def favicon():
+    return Response(status_code=204)
 
 @app.get("/desktops")
 def read_desktops():

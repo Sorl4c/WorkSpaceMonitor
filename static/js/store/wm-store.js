@@ -5,6 +5,7 @@ document.addEventListener('alpine:init', () => {
         online: false,
         lastUpdate: Date.now(),
         activeDesktopId: null,
+        favorites: JSON.parse(localStorage.getItem('wm_favorites') || '[]'),
         
         // Datos brutos
         raw: { desktops: [], windows: [], terminals: [] },
@@ -24,14 +25,21 @@ document.addEventListener('alpine:init', () => {
         async refresh() {
             this.online = 'loading';
             try {
-                const response = await fetch('/api/snapshot');
-                if (response.ok) {
-                    const data = await response.json();
-                    this.applyIncomingState(data);
-                    this.online = true;
+                const response = await fetch('/api/snapshot', { cache: 'no-store' });
+                if (!response.ok) {
+                    throw new Error(`Snapshot request failed with ${response.status}`);
                 }
+
+                const data = await response.json();
+                this.applyIncomingState(data);
+                this.online = true;
             } catch (e) {
-                console.error('WM Store: Refresh Error', e);
+                const isOffline = e instanceof TypeError;
+                if (isOffline) {
+                    console.warn('WM Store: backend offline or unreachable during refresh');
+                } else {
+                    console.error('WM Store: Refresh Error', e);
+                }
                 this.online = false;
             }
         },
@@ -80,7 +88,7 @@ document.addEventListener('alpine:init', () => {
 
                 const catCounts = {};
                 wins.forEach(w => catCounts[w.semanticType] = (catCounts[w.semanticType] || 0) + 1);
-                const dominantCategory = Object.entries(catCounts).sort((a,b) => b[1]-a[1])[0]?.[0] || 'system';
+                const dominantCategory = Object.entries(catCounts).sort((a,b) => b[1]-a[1])[0]?.[0] || 'noise';
 
                 return {
                     ...d,
@@ -101,7 +109,8 @@ document.addEventListener('alpine:init', () => {
                         },
                         files: wins.filter(w => w.semanticType === 'files'),
                         comms: wins.filter(w => w.semanticType === 'comms'),
-                        system: wins.filter(w => w.semanticType === 'system')
+                        system: wins.filter(w => w.semanticType === 'system'),
+                        noise: wins.filter(w => w.semanticType === 'noise')
                     }
                 };
             }).sort((a, b) => a.number - b.number);
@@ -112,7 +121,9 @@ document.addEventListener('alpine:init', () => {
                 { id: 'code', label: 'Development', icon: 'code', color: 'var(--c-code)' },
                 { id: 'web', label: 'Web & Research', icon: 'globe', color: 'var(--c-web)' },
                 { id: 'files', label: 'Files', icon: 'folder', color: 'var(--c-files)' },
-                { id: 'comms', label: 'Communication', icon: 'message-square', color: 'var(--c-comms)' }
+                { id: 'comms', label: 'Communication', icon: 'message-square', color: 'var(--c-comms)' },
+                { id: 'system', label: 'System', icon: 'settings', color: 'var(--c-system)' },
+                { id: 'noise', label: 'Noise', icon: 'minus', color: 'rgba(107, 114, 128, 0.5)' }
             ];
 
             this.processed.byCategory = categories.map(cat => {
@@ -135,31 +146,61 @@ document.addEventListener('alpine:init', () => {
 
         classify(win, terminal) {
             const title = (win.title || "").toLowerCase();
+            const hasAny = (keywords) => keywords.some((kw) => title.includes(kw));
+            const codeEditorKeywords = ['visual studio code', 'vscode', 'cursor', 'sublime', 'notepad++'];
+            const codeToolKeywords = ['dbeaver', 'xampp', 'postman', 'docker', 'vmware', 'heidisql', 'mysql workbench', 'mongodb compass', 'insomnia', 'tableplus', 'redis insight', 'pgadmin'];
+            const browserKeywords = ['chrome', 'edge', 'firefox', 'comet'];
+            const webAppKeywords = ['perplexity', 'gemini', 'notebooklm', 'chatgpt', 'claude', 'localhost', '127.0.0.1', 'figma', 'excalidraw'];
+            const webBrowsingKeywords = ['youtube', 'github', 'stackoverflow', 'docs', 'documentation', 'tutorial', 'guide', 'blog', 'view-source:'];
+            const commsKeywords = ['whatsapp', 'slack', 'discord', 'telegram', 'gmail', 'outlook', 'inbox', 'mail'];
+            const filesKeywords = ['explorador', 'explorer'];
+            const systemKeywords = ['task manager', 
+                'administrador de tareas', 'settings', 
+                'configuraciÃ³n', 'control panel', 'panel de control',
+                 'registry editor', 'services', 'device manager', 'windows security', 
+                 'seguridad de windows', 'herramienta recortes', 'snipping tool', 'reloj', 'clock',
+                  'opciones de energÃ­a', 'power options'];
             if (terminal) {
                 const isAnchor = ['ready', 'python', 'npm', 'node', 'ssh', 'uvicorn', 'server', 'worker'].some(kw => title.includes(kw));
                 return { main: 'terminal', sub: isAnchor ? 'anchor' : 'generic', importance: isAnchor ? 'high' : 'medium' };
             }
-            if (['visual studio code', 'vscode', 'cursor', 'sublime', 'notepad++'].some(kw => title.includes(kw))) {
-                const isTool = ['dbeaver', 'xampp', 'postman', 'studio', 'docker'].some(kw => title.includes(kw));
-                return { main: 'code', sub: isTool ? 'tool' : 'editor', importance: 'high' };
+            if (hasAny(codeEditorKeywords)) {
+                return { main: 'code', sub: 'editor', importance: 'high' };
             }
-            if (['chrome', 'edge', 'firefox'].some(kw => title.includes(kw))) {
-                const isWebApp = ['perplexity', 'gmail', 'gemini', 'notebooklm', 'chatgpt', 'comet', 'localhost'].some(kw => title.includes(kw));
-                return { main: 'web', sub: isWebApp ? 'app' : 'browsing', importance: isWebApp ? 'medium' : 'low' };
+            if (hasAny(codeToolKeywords)) {
+                return { main: 'code', sub: 'tool', importance: 'high' };
             }
-            if (['whatsapp', 'slack', 'discord', 'telegram'].some(kw => title.includes(kw))) {
+            if (hasAny(commsKeywords) && !hasAny(browserKeywords)) {
                 return { main: 'comms', sub: 'chat', importance: 'medium' };
             }
-            if (['explorador', 'explorer'].some(kw => title.includes(kw))) {
+            if (hasAny(filesKeywords)) {
                 return { main: 'files', sub: 'folder', importance: 'medium' };
             }
-            return { main: 'system', sub: 'noise', importance: 'low' };
+            if (hasAny(systemKeywords)) {
+                return { main: 'system', sub: 'utility', importance: 'medium' };
+            }
+            if (hasAny(commsKeywords)) {
+                return { main: 'comms', sub: 'web-chat', importance: 'medium' };
+            }
+            if (hasAny(webAppKeywords)) {
+                return { main: 'web', sub: 'app', importance: 'medium' };
+            }
+            if (hasAny(browserKeywords)) {
+                if (hasAny(webBrowsingKeywords)) {
+                    return { main: 'web', sub: 'browsing', importance: 'low' };
+                }
+                return { main: 'web', sub: 'browsing', importance: 'low' };
+            }
+            if (['task manager', 'administrador de tareas', 'settings', 'configuración', 'control panel', 'panel de control', 'registry editor', 'services', 'device manager', 'windows security', 'seguridad de windows'].some(kw => title.includes(kw))) {
+                return { main: 'system', sub: 'utility', importance: 'medium' };
+            }
+            return { main: 'noise', sub: 'ambiguous', importance: 'low' };
         },
 
         // Getters ahora ultra-rápidos (solo devuelven la caché procesada)
         get desktopsWithSummary() { return this.processed.desktops; },
         get activeDesktop() { return this.processed.desktops.find(d => d.id === this.activeDesktopId); },
-        get activeBuckets() { return this.activeDesktop?.buckets || { terminal: [], code: { files: [], tools: [] }, web: { apps: [], browsing: [] }, files: [], comms: [], system: [] }; },
+        get activeBuckets() { return this.activeDesktop?.buckets || { terminal: [], code: { files: [], tools: [] }, web: { apps: [], browsing: [] }, files: [], comms: [], system: [], noise: [] }; },
         get allWindowsByCategory() { return this.processed.byCategory; },
 
         setActiveDesktop(id) {
@@ -169,6 +210,25 @@ document.addEventListener('alpine:init', () => {
 
         setViewMode(mode) {
             this.viewMode = mode;
+        },
+
+        toggleFavorite(win) {
+            if (!win) return;
+            const index = this.favorites.findIndex(f => f.hwnd === win.hwnd);
+            if (index > -1) {
+                this.favorites.splice(index, 1);
+            } else {
+                this.favorites.push({
+                    hwnd: win.hwnd,
+                    title: win.terminalName || win.title,
+                    type: win.semanticType || 'unknown'
+                });
+            }
+            localStorage.setItem('wm_favorites', JSON.stringify(this.favorites));
+        },
+
+        isFavorite(hwnd) {
+            return this.favorites.some(f => f.hwnd === hwnd);
         },
 
         async jumpToWindow(hwnd) {
