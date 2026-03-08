@@ -1,33 +1,52 @@
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 import asyncio
 import json
+import time
+import os
+import psutil
 from src.desktop import get_virtual_desktops
 from src.window import get_all_windows
-from src.terminal import TerminalTracker, detect_terminals
+from src.terminal import detect_terminals
 
 app = FastAPI(title="Workspace Monitor")
-terminal_tracker = TerminalTracker()
 
-class TerminalNameRequest(BaseModel):
-    name: str
+# Variable para activar/desactivar el log de rendimiento en consola
+DEBUG_PERFORMANCE = True
+
+def gather_state():
+    """Función síncrona que recopila el estado. La aislamos para ejecutarla en un hilo."""
+    state = {
+        "desktops": get_virtual_desktops(),
+        "windows": get_all_windows(),
+        "terminals": detect_terminals()
+    }
+    return state
 
 async def event_generator(request: Request):
+    my_process = psutil.Process(os.getpid())
+    my_process.cpu_percent() # Init CPU counter
+
     while True:
         if await request.is_disconnected():
             break
             
-        # In a real app we'd diff state here. For MVP, we'll push current state periodically.
-        state = {
-            "desktops": get_virtual_desktops(),
-            "windows": get_all_windows(),
-            "terminals": detect_terminals()
-        }
-        for t in state["terminals"]:
-            t["custom_name"] = terminal_tracker.get_name(t["pid"])
+        t0 = time.time()
+        
+        # Ejecutamos la recolección en un hilo secundario para NO bloquear FastAPI
+        state = await asyncio.to_thread(gather_state)
+            
+        t1 = time.time()
+        
+        if DEBUG_PERFORMANCE:
+            elapsed_ms = (t1 - t0) * 1000
+            ram_mb = my_process.memory_info().rss / (1024 * 1024)
+            cpu_usage = my_process.cpu_percent()
+            
+            print(f"[DEBUG] Estado recopilado en {elapsed_ms:.2f}ms")
+            print(f"[DEBUG] Daemon Consume: {ram_mb:.2f} MB RAM | CPU: {cpu_usage}%")
+            print("-" * 40)
             
         yield {"data": json.dumps(state)}
         await asyncio.sleep(2)
@@ -50,23 +69,6 @@ def read_windows():
 
 @app.get("/terminals")
 def read_terminals():
-    terminals = detect_terminals()
-    for t in terminals:
-        custom_name = terminal_tracker.get_name(t["pid"])
-        t["custom_name"] = custom_name
-    return terminals
-
-@app.get("/terminals/{pid}")
-def read_terminal(pid: int):
-    name = terminal_tracker.get_name(pid)
-    if name:
-        return {"pid": pid, "name": name}
-    return {"pid": pid, "name": None}
-
-@app.post("/terminals/{pid}")
-def update_terminal(pid: int, request: TerminalNameRequest):
-    terminal_tracker.set_name(pid, request.name)
-    return {"pid": pid, "name": request.name}
+    return detect_terminals()
 
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
-

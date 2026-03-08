@@ -77,6 +77,7 @@ document.addEventListener('alpine:init', () => {
                 return {
                     ...win,
                     terminalName: terminal ? (terminal.custom_name || terminal.name) : null,
+                    cli_context: terminal ? terminal.cli_context : null,
                     semanticType: type.main,
                     semanticSubType: type.sub,
                     importance: type.importance,

@@ -100,10 +100,26 @@
                             <div class="bucket-header"><h3>Terminales</h3></div>
                             <div class="bucket-content">
                                 <template x-for="t in $store.wm.activeBuckets.terminal" :key="t.hwnd">
-                                    <div class="terminal-line"><span>&gt;</span><span :class="t.importance === 'high' ? 'terminal-anchor' : ''" x-text="t.terminalName || t.title"></span><template x-if="t.importance === 'high'"><div class="pulse-dot"></div></template></div>
+                                    <div style="margin-bottom: 0.5rem;">
+                                        <div class="terminal-line">
+                                            <span>&gt;</span><span :class="t.importance === 'high' ? 'terminal-anchor' : ''" x-text="t.terminalName || t.title"></span><template x-if="t.importance === 'high'"><div class="pulse-dot"></div></template>
+                                        </div>
+                                        <template x-if="t.cli_context && t.cli_context.active_worker">
+                                            <div style="margin-left: 1rem; margin-top: 0.25rem; padding: 0.35rem; background: rgba(0,0,0,0.25); border-radius: 4px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.03);">
+                                                <div style="color: var(--c-terminal); font-weight: 600; font-family: 'JetBrains Mono';" x-text="t.cli_context.active_worker.name"></div>
+                                                <div style="color: var(--text-muted); font-size: 0.65rem; font-family: 'JetBrains Mono'; margin-top: 2px;" class="truncate" :title="t.cli_context.active_worker.cwd">
+                                                    📁 <span x-text="t.cli_context.active_worker.cwd"></span>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <template x-if="t.cli_context && !t.cli_context.active_worker && t.cli_context.terminal_cwd">
+                                            <div style="margin-left: 1rem; margin-top: 0.2rem; font-size: 0.65rem; color: #444; font-family: 'JetBrains Mono';">
+                                                💤 Idle: <span x-text="t.cli_context.terminal_cwd"></span>
+                                            </div>
+                                        </template>
+                                    </div>
                                 </template>
-                            </div>
-                        </div>
+                            </div>                        </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
                             <div class="bucket-card cat-code" x-show="$store.wm.activeBuckets.code?.files.length > 0 || $store.wm.activeBuckets.code?.tools.length > 0">
                                 <div class="bucket-header"><h3>Desarrollo</h3></div>
@@ -150,7 +166,18 @@
                         <template x-if="d.buckets">
                             <div class="radar-section">
                                 <div class="radar-section-title">Terminals</div>
-                                <template x-for="t in d.buckets.terminal" :key="t.hwnd"><div class="terminal-line" style="font-size: 0.75rem;"><span :class="t.importance === 'high' ? 'terminal-anchor' : ''" x-text="t.terminalName || t.title"></span></div></template>
+                                <template x-for="t in d.buckets.terminal" :key="t.hwnd">
+                                    <div style="margin-bottom: 4px;">
+                                        <div class="terminal-line" style="font-size: 0.75rem;">
+                                            <span :class="t.importance === 'high' ? 'terminal-anchor' : ''" x-text="t.terminalName || t.title"></span>
+                                        </div>
+                                        <template x-if="t.cli_context && t.cli_context.active_worker">
+                                            <div style="margin-left: 0.5rem; font-size: 0.65rem; color: var(--c-terminal); opacity: 0.8; font-family: 'JetBrains Mono';">
+                                                ↳ <span x-text="t.cli_context.active_worker.name"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
                                 <div x-show="!d.buckets.terminal || d.buckets.terminal.length === 0" class="text-muted" style="font-size: 0.7rem; font-style: italic;">Empty</div>
                             </div>
                         </template>
@@ -174,7 +201,19 @@
                                 <div style="margin-bottom: 1rem;">
                                     <div class="sub-label" style="color: #555; border-bottom: 1px solid #1a1a1a; padding-bottom: 2px;" x-text="group.desktopName"></div>
                                     <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 6px;">
-                                        <template x-for="win in group.windows" :key="win.hwnd"><div class="list-item" style="font-size: 0.75rem;"><div class="dot-marker" :style="{ background: cat.color }"></div><span x-text="win.terminalName || win.title"></span></div></template>
+                                        <template x-for="win in group.windows" :key="win.hwnd">
+                                            <div style="margin-bottom: 2px;">
+                                                <div class="list-item" style="font-size: 0.75rem;">
+                                                    <div class="dot-marker" :style="{ background: cat.color }"></div>
+                                                    <span x-text="win.terminalName || win.title"></span>
+                                                </div>
+                                                <template x-if="win.cli_context && win.cli_context.active_worker">
+                                                    <div style="margin-left: 1rem; font-size: 0.65rem; color: var(--c-terminal); opacity: 0.8; font-family: 'JetBrains Mono';">
+                                                        ↳ <span x-text="win.cli_context.active_worker.name"></span>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </template>
                                     </div>
                                 </div>
                             </template>
