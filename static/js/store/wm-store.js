@@ -84,6 +84,8 @@ document.addEventListener('alpine:init', () => {
 
                 return {
                     ...d,
+                    windowCount: wins.length,
+                    hasActivity: wins.length > 0,
                     semanticSummary: summary.length > 0 ? summary.join(' · ') : 'vacío',
                     fileStats: fileStats,
                     dominantCategory: dominantCategory,
@@ -167,6 +169,24 @@ document.addEventListener('alpine:init', () => {
 
         setViewMode(mode) {
             this.viewMode = mode;
+        },
+
+        async jumpToWindow(hwnd) {
+            try {
+                const response = await fetch(`/api/windows/${hwnd}/jump`, { method: 'POST' });
+                if (!response.ok) throw new Error('Failed to jump to window');
+            } catch (e) {
+                console.error('Jump Error:', e);
+            }
+        },
+
+        async jumpToDesktop(desktopNum) {
+            try {
+                const response = await fetch(`/api/desktops/${desktopNum}/go`, { method: 'POST' });
+                if (!response.ok) throw new Error('Failed to jump to desktop');
+            } catch (e) {
+                console.error('Desktop Jump Error:', e);
+            }
         }
     });
 });

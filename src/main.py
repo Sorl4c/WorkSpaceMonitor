@@ -9,6 +9,8 @@ import psutil
 from src.desktop import get_virtual_desktops
 from src.window import get_all_windows
 from src.terminal import detect_terminals
+from src.jump import focus_window, jump_to_window
+from pyvda import VirtualDesktop
 
 app = FastAPI(title="Workspace Monitor")
 
@@ -56,6 +58,34 @@ async def get_snapshot():
     """Retorna el estado actual del workspace una sola vez."""
     state = await asyncio.to_thread(gather_state)
     return state
+
+@app.post("/api/windows/{hwnd}/focus")
+async def api_focus_window(hwnd: int):
+    """Enfoca una ventana específica."""
+    try:
+        await asyncio.to_thread(focus_window, hwnd)
+        return {"status": "success", "hwnd": hwnd}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@app.post("/api/windows/{hwnd}/jump")
+async def api_jump_to_window(hwnd: int):
+    """Acción completa: cambia de escritorio y enfoca la ventana."""
+    try:
+        result = await asyncio.to_thread(jump_to_window, hwnd)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@app.post("/api/desktops/{desktop_num}/go")
+async def api_go_to_desktop(desktop_num: int):
+    """Cambia al escritorio virtual especificado por su número."""
+    try:
+        # Usamos pyvda directamente para el cambio de escritorio
+        await asyncio.to_thread(lambda: VirtualDesktop(desktop_num).go())
+        return {"status": "success", "desktop": desktop_num}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 @app.get("/events")
 async def sse_events(request: Request):
