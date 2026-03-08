@@ -74,9 +74,12 @@ document.addEventListener('alpine:init', () => {
                 const extMatch = (win.title || "").match(/\.([a-z0-9]{1,10})\b/i);
                 const extension = extMatch ? extMatch[0].toLowerCase() : null;
 
+                // Usamos clean_name del backend si está disponible (especialmente para terminales)
+                const displayName = win.clean_name || win.title;
+
                 return {
                     ...win,
-                    terminalName: terminal ? (terminal.custom_name || terminal.name) : null,
+                    terminalName: terminal ? (terminal.custom_name || displayName) : displayName,
                     cli_context: terminal ? terminal.cli_context : null,
                     semanticType: type.main,
                     semanticSubType: type.sub,
