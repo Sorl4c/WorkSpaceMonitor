@@ -51,6 +51,12 @@ async def event_generator(request: Request):
         yield {"data": json.dumps(state)}
         await asyncio.sleep(2)
 
+@app.get("/api/snapshot")
+async def get_snapshot():
+    """Retorna el estado actual del workspace una sola vez."""
+    state = await asyncio.to_thread(gather_state)
+    return state
+
 @app.get("/events")
 async def sse_events(request: Request):
     return EventSourceResponse(event_generator(request))

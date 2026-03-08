@@ -86,10 +86,17 @@
         <header>
             <h2 x-show="$store.wm.viewMode === 'detail'"><span style="color: #666">Escritorio <span x-text="$store.wm.activeDesktop?.number"></span>:</span> <span x-text="$store.wm.activeDesktop?.name"></span></h2>
             <h2 x-show="$store.wm.viewMode !== 'detail'" x-text="$store.wm.viewMode === 'radar' ? 'Radar: Desktops' : 'Matrix: Categories'"></h2>
-            <div class="view-switcher">
-                <button class="view-btn" :class="{ 'active': $store.wm.viewMode === 'detail' }" @click="$store.wm.setViewMode('detail')">Detail</button>
-                <button class="view-btn" :class="{ 'active': $store.wm.viewMode === 'radar' }" @click="$store.wm.setViewMode('radar')">Radar</button>
-                <button class="view-btn" :class="{ 'active': $store.wm.viewMode === 'matrix' }" @click="$store.wm.setViewMode('matrix')">Matrix</button>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <button @click="$store.wm.refresh()" class="view-btn" style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-base);" :disabled="$store.wm.online === 'loading'">
+                    <span x-show="$store.wm.online === 'loading'">⏳</span>
+                    <span x-show="$store.wm.online !== 'loading'">🔄</span>
+                    Refresh
+                </button>
+                <div class="view-switcher">
+                    <button class="view-btn" :class="{ 'active': $store.wm.viewMode === 'detail' }" @click="$store.wm.setViewMode('detail')">Detail</button>
+                    <button class="view-btn" :class="{ 'active': $store.wm.viewMode === 'radar' }" @click="$store.wm.setViewMode('radar')">Radar</button>
+                    <button class="view-btn" :class="{ 'active': $store.wm.viewMode === 'matrix' }" @click="$store.wm.setViewMode('matrix')">Matrix</button>
+                </div>
             </div>
         </header>
         <div class="content-area">
