@@ -1,10 +1,22 @@
+import re
 from pathlib import Path
+
+WINDOWS_ABS = re.compile(r"^[a-zA-Z]:\\")
+
+
+def _looks_local_path(value: str) -> bool:
+    return value.startswith("/") or value.startswith("~") or bool(WINDOWS_ABS.match(value))
 
 
 def infer_project_from_path(path: str | None) -> tuple[str, str] | None:
     if not path:
         return None
-    normalized = str(Path(path).expanduser())
+    raw = str(path).strip()
+    if not raw or raw.startswith("http://") or raw.startswith("https://"):
+        return None
+    if not _looks_local_path(raw):
+        return None
+    normalized = str(Path(raw).expanduser())
     inferred_name = Path(normalized).name or normalized
     return normalized, inferred_name
 
@@ -26,9 +38,7 @@ def infer_project_candidates(terminals: list[dict], windows: list[dict]) -> list
         title = (window.get("title") or "").strip()
         if " - " not in title:
             continue
-        possible = title.split(" - ")[0]
-        if "/" not in possible and "\\" not in possible:
-            continue
+        possible = title.split(" - ")[0].strip()
         candidate = infer_project_from_path(possible)
         if candidate:
             root_path, inferred_name = candidate
@@ -59,11 +69,9 @@ def infer_project_root_for_window(window: dict, terminals: list[dict]) -> str | 
 
     title = (window.get("title") or "").strip()
     if " - " in title:
-        possible = title.split(" - ")[0]
-        if "/" in possible or "\\" in possible:
-            candidate = infer_project_from_path(possible)
-            if candidate:
-                return candidate[0]
+        candidate = infer_project_from_path(title.split(" - ")[0].strip())
+        if candidate:
+            return candidate[0]
     return None
 
 
