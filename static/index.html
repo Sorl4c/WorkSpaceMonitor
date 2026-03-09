@@ -101,6 +101,17 @@
                 </div>
             </div>
         </header>
+        <div style="padding: 0.75rem 2rem; border-bottom: 1px solid var(--border-base); background: #0b0b0b;">
+            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: .08em; color: #6b7280; margin-bottom: .35rem;">Recent snapshots</div>
+            <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+                <template x-for="snap in $store.wm.recentSnapshots" :key="snap.id">
+                    <div style="border:1px solid #252525; border-radius:6px; padding:.35rem .55rem; font-size:.72rem;">
+                        <span class="font-mono" x-text="'#' + snap.id"></span> · <span x-text="snap.capture_mode"></span> · <span x-text="snap.window_count + 'w'"></span>
+                    </div>
+                </template>
+                <div x-show="$store.wm.recentSnapshots.length === 0" style="font-size:.75rem; color:#555;">No snapshots yet.</div>
+            </div>
+        </div>
         <div class="content-area">
             <div x-show="$store.wm.viewMode === 'detail'" class="max-width-container">
                 <template x-if="$store.wm.activeDesktopId">
