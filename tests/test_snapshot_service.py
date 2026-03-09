@@ -14,9 +14,34 @@ def test_capture_and_restore_plan(tmp_path):
 
     db = SQLitePersistence(str(tmp_path / "wm.db"))
     service = SnapshotService(db, fake_gather, app_version="test")
-    result = service.capture_and_persist("manual")
+    result = service.capture_and_persist("manual", "desktop", "Checkpoint", "Note", "d-1")
     detail = db.snapshot_detail(result["snapshot_id"])
     plan = service.build_restore_plan(result["snapshot_id"], fake_gather())
+    assert detail["snapshot"]["scope"] == "desktop"
+    assert detail["snapshot"]["title"] == "Checkpoint"
     assert detail["windows"][0]["project_id"] is not None
     assert detail["terminals"][0]["window_snapshot_id"] == detail["windows"][0]["id"]
     assert plan["summary"]["matched"] == 1
+
+
+def test_execute_restore_marks_manual_and_reopened(tmp_path):
+    def fake_gather():
+        return {
+            "desktops": [{"id": "d-1", "number": 1, "name": "Desktop 1"}],
+            "windows": [],
+            "terminals": [{"pid": 101, "name": "cmd.exe", "cli_context": {"terminal_cwd": "/repo/a", "active_worker": None}}],
+        }
+
+    db = SQLitePersistence(str(tmp_path / "wm.db"))
+    service = SnapshotService(
+        db,
+        lambda: {
+            "desktops": [{"id": "d-1", "number": 1, "name": "Desktop 1"}],
+            "windows": [{"hwnd": 1, "title": "Repo - Visual Studio Code", "desktop_id": "d-1", "pid": 101, "process_name": "Code.exe"}],
+            "terminals": [{"pid": 101, "name": "cmd.exe", "cli_context": {"terminal_cwd": "/repo/a", "active_worker": None}}],
+        },
+        app_version="test",
+    )
+    result = service.capture_and_persist("manual", "full", "T", "N")
+    restore = service.execute_restore(result["snapshot_id"], fake_gather())
+    assert restore["summary"]["reopened"] == 1

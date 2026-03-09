@@ -1,8 +1,23 @@
 from pathlib import Path
+import re
+
+
+WINDOWS_DRIVE_RE = re.compile(r"^[a-zA-Z]:[\\/]")
+URL_SCHEME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*:")
 
 
 def infer_project_from_path(path: str | None) -> tuple[str, str] | None:
     if not path:
+        return None
+    raw = path.strip()
+    if not raw:
+        return None
+    lowered = raw.lower()
+    if lowered.startswith(("http://", "https://", "view-source:", "github.com", "issues ·", "branches ·")):
+        return None
+    if URL_SCHEME_RE.match(raw) and not WINDOWS_DRIVE_RE.match(raw):
+        return None
+    if not (WINDOWS_DRIVE_RE.match(raw) or raw.startswith(("/", "\\"))):
         return None
     normalized = str(Path(path).expanduser())
     inferred_name = Path(normalized).name or normalized

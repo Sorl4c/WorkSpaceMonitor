@@ -1,9 +1,9 @@
 import asyncio
-import json
 from typing import Any
 
 try:
     from fastapi import FastAPI, HTTPException, Response
+    from fastapi.responses import FileResponse
     from fastapi.staticfiles import StaticFiles
 except Exception:  # pragma: no cover
     class HTTPException(Exception):
@@ -25,6 +25,12 @@ except Exception:  # pragma: no cover
         def post(self, *args, **kwargs):
             return lambda fn: fn
 
+        def patch(self, *args, **kwargs):
+            return lambda fn: fn
+
+        def delete(self, *args, **kwargs):
+            return lambda fn: fn
+
         def mount(self, *args, **kwargs):
             return None
 
@@ -32,8 +38,13 @@ except Exception:  # pragma: no cover
         def __init__(self, *args, **kwargs):
             pass
 
+    class FileResponse:
+        def __init__(self, path: str):
+            self.path = path
+
 from src.desktop import get_virtual_desktops
 from src.jump import focus_window, jump_to_window
+from src.launch_service import LaunchService
 from src.persistence import SQLitePersistence
 from src.snapshot_service import SnapshotService
 from src.terminal import detect_terminals
@@ -42,6 +53,7 @@ from src.window import get_all_windows
 APP_VERSION = "0.2.0"
 app = FastAPI(title="Workspace Monitor")
 persistence = SQLitePersistence()
+launch_service = LaunchService(persistence)
 
 
 def gather_state() -> dict[str, Any]:
@@ -57,8 +69,29 @@ async def get_snapshot():
 
 
 @app.post("/api/snapshots")
-async def create_snapshot():
-    return await asyncio.to_thread(snapshot_service.capture_and_persist, "manual")
+async def create_snapshot(payload: dict[str, Any] | None = None):
+    payload = payload or {}
+    return await asyncio.to_thread(
+        snapshot_service.capture_and_persist,
+        payload.get("capture_mode", "manual"),
+        "full",
+        payload.get("title"),
+        payload.get("note"),
+        None,
+    )
+
+
+@app.post("/api/snapshots/desktop/{desktop_id}")
+async def create_desktop_snapshot(desktop_id: str, payload: dict[str, Any] | None = None):
+    payload = payload or {}
+    return await asyncio.to_thread(
+        snapshot_service.capture_and_persist,
+        payload.get("capture_mode", "manual"),
+        "desktop",
+        payload.get("title"),
+        payload.get("note"),
+        desktop_id,
+    )
 
 
 @app.get("/api/snapshots/latest")
@@ -70,8 +103,8 @@ async def latest_snapshot():
 
 
 @app.get("/api/snapshots")
-async def list_snapshots(limit: int = 10):
-    return {"items": await asyncio.to_thread(persistence.recent_snapshots, limit)}
+async def list_snapshots(limit: int = 10, scope: str | None = None, desktop_number: int | None = None, project_id: int | None = None):
+    return {"items": await asyncio.to_thread(persistence.recent_snapshots, limit, scope, desktop_number, project_id)}
 
 
 @app.get("/api/snapshots/{snapshot_id}")
@@ -82,11 +115,124 @@ async def snapshot_detail(snapshot_id: int):
     return data
 
 
+@app.patch("/api/snapshots/{snapshot_id}")
+async def patch_snapshot(snapshot_id: int, payload: dict[str, Any]):
+    data = await asyncio.to_thread(persistence.update_snapshot, snapshot_id, payload)
+    if not data:
+        raise HTTPException(status_code=404, detail="Snapshot not found")
+    return data
+
+
 @app.post("/api/snapshots/{snapshot_id}/restore-plan")
 async def restore_plan(snapshot_id: int):
     current_state = await asyncio.to_thread(gather_state)
     try:
         return await asyncio.to_thread(snapshot_service.build_restore_plan, snapshot_id, current_state)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/api/snapshots/{snapshot_id}/restore")
+async def restore_snapshot(snapshot_id: int):
+    current_state = await asyncio.to_thread(gather_state)
+    try:
+        return await asyncio.to_thread(snapshot_service.execute_restore, snapshot_id, current_state)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.get("/api/projects")
+async def list_projects():
+    return {"items": await asyncio.to_thread(persistence.list_projects)}
+
+
+@app.post("/api/projects")
+async def create_project(payload: dict[str, Any]):
+    try:
+        return await asyncio.to_thread(persistence.create_project, payload)
+    except Exception as exc:
+        detail = str(exc).lower()
+        if "unique" in detail or "constraint" in detail:
+            raise HTTPException(status_code=400, detail="Project root_path already exists") from exc
+        raise
+
+
+@app.get("/api/projects/{project_id}")
+async def project_detail(project_id: int):
+    data = await asyncio.to_thread(persistence.get_project, project_id)
+    if not data:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return data
+
+
+@app.patch("/api/projects/{project_id}")
+async def patch_project(project_id: int, payload: dict[str, Any]):
+    data = await asyncio.to_thread(persistence.update_project, project_id, payload)
+    if not data:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return data
+
+
+@app.delete("/api/projects/{project_id}")
+async def delete_project(project_id: int):
+    await asyncio.to_thread(persistence.delete_project, project_id)
+    return {"status": "deleted", "project_id": project_id}
+
+
+@app.post("/api/projects/{project_id}/terminals")
+async def create_project_terminal(project_id: int, payload: dict[str, Any]):
+    try:
+        return await asyncio.to_thread(persistence.add_project_terminal, project_id, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.patch("/api/project-terminals/{profile_id}")
+async def patch_project_terminal(profile_id: int, payload: dict[str, Any]):
+    try:
+        data = await asyncio.to_thread(persistence.update_project_terminal, profile_id, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if not data:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    return data
+
+
+@app.delete("/api/project-terminals/{profile_id}")
+async def delete_project_terminal(profile_id: int):
+    await asyncio.to_thread(persistence.delete_project_terminal, profile_id)
+    return {"status": "deleted", "profile_id": profile_id}
+
+
+@app.post("/api/projects/{project_id}/apps")
+async def create_project_app(project_id: int, payload: dict[str, Any]):
+    try:
+        return await asyncio.to_thread(persistence.add_project_app, project_id, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.patch("/api/project-apps/{profile_id}")
+async def patch_project_app(profile_id: int, payload: dict[str, Any]):
+    try:
+        data = await asyncio.to_thread(persistence.update_project_app, profile_id, payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if not data:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    return data
+
+
+@app.delete("/api/project-apps/{profile_id}")
+async def delete_project_app(profile_id: int):
+    await asyncio.to_thread(persistence.delete_project_app, profile_id)
+    return {"status": "deleted", "profile_id": profile_id}
+
+
+@app.post("/api/projects/{project_id}/launch")
+async def launch_project(project_id: int):
+    try:
+        return await asyncio.to_thread(launch_service.launch_project, project_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
@@ -107,6 +253,7 @@ async def api_jump_to_window(hwnd: int):
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     return {"status": "success" if data.get("focused") else "partial", "data": data}
 
+
 @app.post("/api/desktops/{desktop_num}/go")
 async def api_go_to_desktop(desktop_num: int):
     try:
@@ -122,6 +269,7 @@ async def api_go_to_desktop(desktop_num: int):
 def favicon():
     return Response(status_code=204)
 
+
 @app.get("/desktops")
 def read_desktops():
     return get_virtual_desktops()
@@ -136,9 +284,15 @@ def read_windows():
 def read_terminals():
     return detect_terminals()
 
+
 @app.get("/api/status")
 def read_root():
     return {"status": "running", "message": "Workspace Monitor Daemon"}
+
+
+@app.get("/studio")
+def studio():
+    return FileResponse("static/studio.html")
 
 
 @app.get("/events")

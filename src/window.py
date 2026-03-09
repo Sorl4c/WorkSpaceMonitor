@@ -57,7 +57,22 @@ def get_all_windows() -> list[dict]:
         except Exception:
             pass
 
-        windows.append({"hwnd": hwnd, "title": title, "clean_name": clean_name, "desktop_id": desktop_id, "pid": pid, "process_name": process_name})
+        rect = None
+        try:
+            left, top, right, bottom = win32gui.GetWindowRect(hwnd)
+            rect = {"x": left, "y": top, "width": max(right - left, 0), "height": max(bottom - top, 0)}
+        except Exception:
+            rect = None
+
+        windows.append({
+            "hwnd": hwnd,
+            "title": title,
+            "clean_name": clean_name,
+            "desktop_id": desktop_id,
+            "pid": pid,
+            "process_name": process_name,
+            "rect": rect,
+        })
 
     win32gui.EnumWindows(enum_handler, None)
     return windows

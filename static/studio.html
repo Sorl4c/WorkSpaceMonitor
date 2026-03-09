@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Workspace Monitor Studio</title>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+  <script src="/js/store/studio-store.js"></script>
+  <style>
+    body { font-family: Inter, Arial, sans-serif; background: #0d0d0d; color: #eee; margin: 0; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 18px; }
+    .tabs button { margin-right: 8px; background: #1e1e1e; color: #bbb; border: 1px solid #333; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+    .tabs button.active { background: #2b2b2b; color: #fff; }
+    .card { border: 1px solid #2a2a2a; background: #141414; border-radius: 10px; padding: 12px; margin-top: 12px; }
+    input, textarea, select { width: 100%; background: #101010; border: 1px solid #333; color: #eee; border-radius: 6px; padding: 8px; margin-top: 6px; box-sizing: border-box; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .muted { color: #888; font-size: 12px; }
+    .action { background: #222; color: #eee; border: 1px solid #333; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+    .action:hover { background: #2b2b2b; }
+    a.link { color: #9dc1ff; text-decoration: none; }
+  </style>
+</head>
+<body x-data x-init="$store.wmStudio.init()">
+<div class="wrap">
+  <div class="row" style="justify-content: space-between; align-items: center;">
+    <h2 style="margin: 0;">Studio</h2>
+    <a class="link" href="/">Back to Live</a>
+  </div>
+
+  <div class="tabs">
+    <button :class="{active:$store.wmStudio.mode==='projects'}" @click="$store.wmStudio.mode='projects'; $store.wmStudio.loadProjects()">Projects</button>
+    <button :class="{active:$store.wmStudio.mode==='snapshots'}" @click="$store.wmStudio.mode='snapshots'; $store.wmStudio.loadRecentSnapshots()">Snapshots</button>
+  </div>
+
+  <section x-show="$store.wmStudio.mode==='projects'" class="card">
+    <h3>Projects</h3>
+    <div class="grid">
+      <div>
+        <label>Name<input x-model="$store.wmStudio.newProject.manual_name"></label>
+        <label>Root Path<input x-model="$store.wmStudio.newProject.root_path"></label>
+        <label>Notes<textarea x-model="$store.wmStudio.newProject.notes"></textarea></label>
+        <button class="action" @click="$store.wmStudio.createProject()">Create Project</button>
+      </div>
+      <div>
+        <template x-for="p in $store.wmStudio.projects" :key="p.id">
+          <div class="card">
+            <b x-text="p.manual_name || p.inferred_name"></b>
+            <div class="muted" x-text="p.root_path"></div>
+            <div class="row">
+              <button class="action" @click="$store.wmStudio.selectProject(p.id)">Open</button>
+              <button class="action" @click="$store.wmStudio.launchProject(p.id)">Launch</button>
+              <button class="action" @click="$store.wmStudio.deleteProject(p.id)">Archive</button>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+    <div class="card" x-show="$store.wmStudio.activeProject">
+      <h4 x-text="$store.wmStudio.activeProject?.manual_name || 'Project detail'"></h4>
+      <div class="muted" x-text="$store.wmStudio.activeProject?.root_path"></div>
+      <div class="row">
+        <button class="action" @click="$store.wmStudio.addDefaultTerminal()">+ Terminal</button>
+        <button class="action" @click="$store.wmStudio.addDefaultApp()">+ VSCode App</button>
+      </div>
+      <div class="muted" x-show="$store.wmStudio.launchResult" x-text="'Last launch items: ' + ($store.wmStudio.launchResult?.items?.length || 0)"></div>
+    </div>
+  </section>
+
+  <section x-show="$store.wmStudio.mode==='snapshots'" class="card">
+    <h3>Snapshots</h3>
+    <div class="row">
+      <button class="action" @click="$store.wmStudio.saveSnapshot()">Save Snapshot</button>
+    </div>
+    <div class="row" style="margin-top: 12px;">
+      <select x-model="$store.wmStudio.snapshotFilters.scope" @change="$store.wmStudio.loadRecentSnapshots()"><option value="">all</option><option value="full">full</option><option value="desktop">desktop</option></select>
+      <input placeholder="desktop #" x-model="$store.wmStudio.snapshotFilters.desktop_number" @change="$store.wmStudio.loadRecentSnapshots()"/>
+    </div>
+    <template x-for="s in $store.wmStudio.recentSnapshots" :key="s.id">
+      <div class="card">
+        <b x-text="s.title || ('Snapshot #' + s.id)"></b>
+        <div class="muted" x-text="s.note || '-'"></div>
+        <div class="muted" x-text="s.scope + ' · windows: ' + s.window_count"></div>
+        <div class="row">
+          <button class="action" @click="$store.wmStudio.openSnapshot(s.id)">Detail</button>
+          <button class="action" @click="$store.wmStudio.restoreSnapshot(s.id)">Restore Snapshot</button>
+        </div>
+      </div>
+    </template>
+    <div class="card" x-show="$store.wmStudio.snapshotDetail">
+      <h4 x-text="$store.wmStudio.snapshotDetail?.snapshot?.title || 'Snapshot detail'"></h4>
+      <input x-model="$store.wmStudio.snapshotEdit.title" placeholder="Title" />
+      <textarea x-model="$store.wmStudio.snapshotEdit.note"></textarea>
+      <div class="row">
+        <button class="action" @click="$store.wmStudio.saveSnapshotMeta()">Save metadata</button>
+        <button class="action" @click="$store.wmStudio.loadRestorePlan()">Refresh restore plan</button>
+      </div>
+      <template x-for="i in $store.wmStudio.restorePlan?.items || []" :key="i.window_snapshot_id">
+        <div class="muted" x-text="i.status + ' · ' + i.title"></div>
+      </template>
+    </div>
+  </section>
+</div>
+</body>
+</html>

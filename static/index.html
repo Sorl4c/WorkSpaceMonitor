@@ -65,11 +65,34 @@
         .radar-section-title { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #444; }
         .file-chip { display: inline-flex; align-items: center; background: #161616; border: 1px solid #222; padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono'; font-size: 0.7rem; color: #888; }
         .file-chip.active { color: var(--c-code); border-color: rgba(59, 130, 246, 0.3); }
+        .custom-context-menu { position: fixed; z-index: 9999; background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 0.5rem; min-width: 220px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; gap: 2px; }
+        .custom-context-menu button { background: transparent; border: none; color: #ccc; text-align: left; padding: 8px 12px; cursor: pointer; font-size: 0.8rem; border-radius: 4px; transition: background 0.1s; display: flex; align-items: center; gap: 0.5rem; }
+        .custom-context-menu button:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        .slide-enter-active { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .slide-leave-active { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        .slide-enter-from, .slide-leave-to { transform: translateX(100%); }
+        .slide-enter-to, .slide-leave-from { transform: translateX(0); }
         [x-cloak] { display: none !important; }
     </style>
 </head>
-<body x-data>
+<body x-data="{
+    menuOpen: false,
+    menuX: 0,
+    menuY: 0,
+    selectedWin: null,
+    showFavorites: false,
+    openMenu(event, win) {
+        this.menuOpen = true;
+        this.menuX = event.clientX;
+        this.menuY = event.clientY;
+        this.selectedWin = win;
+    },
+    closeMenu() {
+        this.menuOpen = false;
+        this.selectedWin = null;
+    }
+}">
     <aside x-show="$store.wm.viewMode === 'detail'">
         <div class="sidebar-header">WM / Cluster View</div>
         <div class="desktop-list">
@@ -89,10 +112,20 @@
             <h2 x-show="$store.wm.viewMode === 'detail'"><span style="color: #666">Escritorio <span x-text="$store.wm.activeDesktop?.number"></span>:</span> <span x-text="$store.wm.activeDesktop?.name"></span></h2>
             <h2 x-show="$store.wm.viewMode !== 'detail'" x-text="$store.wm.viewMode === 'radar' ? 'Radar: Desktops' : 'Matrix: Categories'"></h2>
             <div style="display: flex; gap: 1rem; align-items: center;">
+                <button @click="showFavorites = true" class="view-btn" style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-base);">
+                    <span>★</span>
+                    Favoritos
+                </button>
                 <button @click="$store.wm.saveSnapshot()" class="view-btn" style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-base);" :disabled="$store.wm.savingSnapshot">
                     <span x-show="$store.wm.savingSnapshot">Saving...</span>
                     <span x-show="!$store.wm.savingSnapshot">Save Snapshot</span>
                 </button>
+                <button @click="$store.wm.saveDesktopSnapshot()" class="view-btn" style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-base);" :disabled="$store.wm.savingSnapshot || !$store.wm.activeDesktopId">
+                    <span>Save Desktop</span>
+                </button>
+                <a href="/studio" class="view-btn" style="display: inline-flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-base); text-decoration: none;">
+                    Studio
+                </a>
                 <button @click="$store.wm.refresh()" class="view-btn" style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-base);" :disabled="$store.wm.online === 'loading'">
                     <span x-show="$store.wm.online === 'loading'">⏳</span>
                     <span x-show="$store.wm.online !== 'loading'">🔄</span>
@@ -125,7 +158,7 @@
                             <div class="bucket-content">
                                 <template x-for="t in $store.wm.activeBuckets.terminal" :key="t.hwnd">
                                     <div style="margin-bottom: 0.5rem;">
-                                        <div class="terminal-line" @click="$store.wm.jumpToWindow(t.hwnd)" title="Saltar a la ventana">
+                                        <div class="terminal-line" @click="$store.wm.jumpToWindow(t.hwnd)" @contextmenu.prevent="openMenu($event, t)" title="Saltar a la ventana">
                                             <span>&gt;</span><span :class="t.importance === 'high' ? 'terminal-anchor' : ''" x-text="t.terminalName || t.title"></span><template x-if="t.importance === 'high'"><div class="pulse-dot"></div></template>
                                         </div>
                                         <template x-if="t.cli_context && t.cli_context.active_worker">
@@ -148,15 +181,15 @@
                             <div class="bucket-card cat-code" x-show="$store.wm.activeBuckets.code?.files.length > 0 || $store.wm.activeBuckets.code?.tools.length > 0">
                                 <div class="bucket-header"><h3>Desarrollo</h3></div>
                                 <div class="bucket-content">
-                                    <template x-for="win in $store.wm.activeBuckets.code?.files" :key="win.hwnd"><div class="list-item" @click="$store.wm.jumpToWindow(win.hwnd)" title="Saltar a la ventana"><div class="dot-marker" style="background: var(--c-code);"></div><span x-text="win.title"></span></div></template>
-                                    <template x-for="win in $store.wm.activeBuckets.code?.tools" :key="win.hwnd"><div class="list-item" style="opacity: 0.6;" @click="$store.wm.jumpToWindow(win.hwnd)" title="Saltar a la ventana"><div class="dot-marker" style="background: var(--c-code); opacity: 0.3;"></div><span x-text="win.title"></span></div></template>
+                                    <template x-for="win in $store.wm.activeBuckets.code?.files" :key="win.hwnd"><div class="list-item" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><div class="dot-marker" style="background: var(--c-code);"></div><span x-text="win.title"></span></div></template>
+                                    <template x-for="win in $store.wm.activeBuckets.code?.tools" :key="win.hwnd"><div class="list-item" style="opacity: 0.6;" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><div class="dot-marker" style="background: var(--c-code); opacity: 0.3;"></div><span x-text="win.title"></span></div></template>
                                 </div>
                             </div>
                             <div class="bucket-card cat-web" x-show="$store.wm.activeBuckets.web?.apps.length > 0 || $store.wm.activeBuckets.web?.browsing.length > 0">
                                 <div class="bucket-header"><h3>Web</h3></div>
                                 <div class="bucket-content">
-                                    <template x-for="win in $store.wm.activeBuckets.web?.apps" :key="win.hwnd"><div class="list-item" style="color: #eee;" @click="$store.wm.jumpToWindow(win.hwnd)" title="Saltar a la ventana"><div class="dot-marker" style="background: var(--c-web); box-shadow: 0 0 4px var(--c-web);"></div><span x-text="win.title"></span></div></template>
-                                    <template x-for="win in $store.wm.activeBuckets.web?.browsing" :key="win.hwnd"><div class="list-item" style="opacity: 0.7;" @click="$store.wm.jumpToWindow(win.hwnd)" title="Saltar a la ventana"><div class="dot-marker" style="background: var(--c-web); opacity: 0.3;"></div><span x-text="win.title"></span></div></template>
+                                    <template x-for="win in $store.wm.activeBuckets.web?.apps" :key="win.hwnd"><div class="list-item" style="color: #eee;" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><div class="dot-marker" style="background: var(--c-web); box-shadow: 0 0 4px var(--c-web);"></div><span x-text="win.title"></span></div></template>
+                                    <template x-for="win in $store.wm.activeBuckets.web?.browsing" :key="win.hwnd"><div class="list-item" style="opacity: 0.7;" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><div class="dot-marker" style="background: var(--c-web); opacity: 0.3;"></div><span x-text="win.title"></span></div></template>
                                 </div>
                             </div>
                         </div>
@@ -164,13 +197,13 @@
                             <div class="bucket-card cat-files" x-show="$store.wm.activeBuckets.files?.length > 0">
                                 <div class="bucket-header"><h3>Archivos</h3></div>
                                 <div class="bucket-content">
-                                    <template x-for="win in $store.wm.activeBuckets.files" :key="win.hwnd"><div class="list-item font-mono" @click="$store.wm.jumpToWindow(win.hwnd)" title="Saltar a la ventana"><span style="color: var(--c-files); opacity: 0.5;">./</span><span x-text="win.title"></span></div></template>
+                                    <template x-for="win in $store.wm.activeBuckets.files" :key="win.hwnd"><div class="list-item font-mono" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><span style="color: var(--c-files); opacity: 0.5;">./</span><span x-text="win.title"></span></div></template>
                                 </div>
                             </div>
                             <div class="bucket-card cat-comms" x-show="$store.wm.activeBuckets.comms?.length > 0">
                                 <div class="bucket-header"><h3>Comunicación</h3></div>
                                 <div class="bucket-content">
-                                    <template x-for="win in $store.wm.activeBuckets.comms" :key="win.hwnd"><div class="list-item" @click="$store.wm.jumpToWindow(win.hwnd)" title="Saltar a la ventana"><div class="dot-marker" style="background: var(--c-comms);"></div><span x-text="win.title"></span></div></template>
+                                    <template x-for="win in $store.wm.activeBuckets.comms" :key="win.hwnd"><div class="list-item" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><div class="dot-marker" style="background: var(--c-comms);"></div><span x-text="win.title"></span></div></template>
                                 </div>
                             </div>
                         </div>
@@ -201,7 +234,7 @@
                                     <div x-show="expanded" style="padding: 0 0.75rem 0.75rem 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;">
                                         <template x-for="t in d.buckets.terminal" :key="t.hwnd">
                                             <div>
-                                                <div class="terminal-line" style="font-size: 0.75rem;" @click="$store.wm.jumpToWindow(t.hwnd)" title="Saltar a la ventana">
+                                                <div class="terminal-line" style="font-size: 0.75rem;" @click="$store.wm.jumpToWindow(t.hwnd)" @contextmenu.prevent="openMenu($event, t)" title="Saltar a la ventana">
                                                     <span :class="t.importance === 'high' ? 'terminal-anchor' : ''" x-text="t.terminalName || t.title"></span>
                                                 </div>
                                                 <template x-if="t.cli_context && t.cli_context.active_worker">
@@ -223,8 +256,8 @@
                                         <span x-text="expanded ? '▲' : '▼'" style="font-size: 0.55rem; opacity: 0.5;"></span>
                                     </div>
                                     <div x-show="expanded" style="padding: 0 0.75rem 0.75rem 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;">
-                                        <template x-for="win in d.buckets.code.files" :key="win.hwnd"><div class="list-item" style="font-size: 0.75rem;" @click="$store.wm.jumpToWindow(win.hwnd)" title="Saltar a la ventana"><span x-text="win.title"></span></div></template>
-                                        <template x-for="win in d.buckets.code.tools" :key="win.hwnd"><div class="list-item" style="font-size: 0.75rem; opacity: 0.6;" @click="$store.wm.jumpToWindow(win.hwnd)" title="Saltar a la ventana"><span x-text="win.title"></span></div></template>
+                                        <template x-for="win in d.buckets.code.files" :key="win.hwnd"><div class="list-item" style="font-size: 0.75rem;" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><span x-text="win.title"></span></div></template>
+                                        <template x-for="win in d.buckets.code.tools" :key="win.hwnd"><div class="list-item" style="font-size: 0.75rem; opacity: 0.6;" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><span x-text="win.title"></span></div></template>
                                     </div>
                                 </div>
                             </template>
@@ -237,8 +270,8 @@
                                         <span x-text="expanded ? '▲' : '▼'" style="font-size: 0.55rem; opacity: 0.5;"></span>
                                     </div>
                                     <div x-show="expanded" style="padding: 0 0.75rem 0.75rem 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;">
-                                        <template x-for="win in d.buckets.web.apps" :key="win.hwnd"><div class="list-item" style="font-size: 0.75rem; color: #eee;" @click="$store.wm.jumpToWindow(win.hwnd)" title="Saltar a la ventana"><span x-text="win.title"></span></div></template>
-                                        <template x-for="win in d.buckets.web.browsing" :key="win.hwnd"><div class="list-item" style="font-size: 0.75rem; opacity: 0.7;" @click="$store.wm.jumpToWindow(win.hwnd)" title="Saltar a la ventana"><span x-text="win.title"></span></div></template>
+                                        <template x-for="win in d.buckets.web.apps" :key="win.hwnd"><div class="list-item" style="font-size: 0.75rem; color: #eee;" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><span x-text="win.title"></span></div></template>
+                                        <template x-for="win in d.buckets.web.browsing" :key="win.hwnd"><div class="list-item" style="font-size: 0.75rem; opacity: 0.7;" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><span x-text="win.title"></span></div></template>
                                     </div>
                                 </div>
                             </template>
@@ -251,7 +284,7 @@
                                         <span x-text="expanded ? '▲' : '▼'" style="font-size: 0.55rem; opacity: 0.5;"></span>
                                     </div>
                                     <div x-show="expanded" style="padding: 0 0.75rem 0.75rem 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;">
-                                        <template x-for="win in d.buckets.files" :key="win.hwnd"><div class="list-item font-mono" style="font-size: 0.75rem;" @click="$store.wm.jumpToWindow(win.hwnd)" title="Saltar a la ventana"><span x-text="win.title"></span></div></template>
+                                        <template x-for="win in d.buckets.files" :key="win.hwnd"><div class="list-item font-mono" style="font-size: 0.75rem;" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><span x-text="win.title"></span></div></template>
                                     </div>
                                 </div>
                             </template>
@@ -264,7 +297,7 @@
                                         <span x-text="expanded ? '▲' : '▼'" style="font-size: 0.55rem; opacity: 0.5;"></span>
                                     </div>
                                     <div x-show="expanded" style="padding: 0 0.75rem 0.75rem 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;">
-                                        <template x-for="win in d.buckets.comms" :key="win.hwnd"><div class="list-item" style="font-size: 0.75rem;" @click="$store.wm.jumpToWindow(win.hwnd)" title="Saltar a la ventana"><span x-text="win.title"></span></div></template>
+                                        <template x-for="win in d.buckets.comms" :key="win.hwnd"><div class="list-item" style="font-size: 0.75rem;" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><span x-text="win.title"></span></div></template>
                                     </div>
                                 </div>
                             </template>
@@ -283,7 +316,7 @@
                                     <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 6px;">
                                         <template x-for="win in group.windows" :key="win.hwnd">
                                             <div style="margin-bottom: 2px;">
-                                                <div class="list-item" style="font-size: 0.75rem;" @click="$store.wm.jumpToWindow(win.hwnd)" title="Saltar a la ventana">
+                                                <div class="list-item" style="font-size: 0.75rem;" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana">
                                                     <div class="dot-marker" :style="{ background: cat.color }"></div>
                                                     <span x-text="win.terminalName || win.title"></span>
                                                 </div>
@@ -303,5 +336,49 @@
             </div>
         </div>
     </main>
+    <div x-show="showFavorites"
+         x-transition:enter="slide-enter-active"
+         x-transition:enter-start="slide-enter-from"
+         x-transition:enter-end="slide-enter-to"
+         x-transition:leave="slide-leave-active"
+         x-transition:leave-start="slide-leave-from"
+         x-transition:leave-end="slide-leave-to"
+         x-cloak
+         style="position: fixed; right: 0; top: 0; bottom: 0; width: 300px; background: var(--bg-sidebar); border-left: 1px solid var(--border-base); z-index: 1000; display: flex; flex-direction: column; box-shadow: -5px 0 15px rgba(0,0,0,0.5);">
+        <div class="sidebar-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Favoritos</span>
+            <button @click="showFavorites = false" style="background: none; border: none; color: #aaa; cursor: pointer; font-size: 1rem;">×</button>
+        </div>
+        <div style="padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem;">
+            <template x-if="$store.wm.favorites.length === 0">
+                <div style="color: #666; font-size: 0.8rem; text-align: center; margin-top: 2rem;">No hay favoritos guardados.</div>
+            </template>
+            <template x-for="fav in $store.wm.favorites" :key="fav.hwnd">
+                <div class="list-item" @click="$store.wm.jumpToWindow(fav.hwnd)" title="Saltar a la ventana" style="padding: 0.75rem; background: rgba(255,255,255,0.03); border-radius: 4px; border: 1px solid var(--border-base); display: flex; align-items: center;">
+                    <div class="dot-marker" style="background: #eab308; margin-top: 0;"></div>
+                    <span x-text="fav.title" style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
+                    <button @click.stop="$store.wm.toggleFavorite(fav)" style="background: none; border: none; cursor: pointer; color: #ef4444; margin-left: 0.5rem;">×</button>
+                </div>
+            </template>
+        </div>
+    </div>
+    <div id="ctx-menu"
+         x-show="menuOpen"
+         @click.away="closeMenu()"
+         x-cloak
+         class="custom-context-menu"
+         :style="`
+            ${menuX > window.innerWidth / 2 ? 'right: ' + (window.innerWidth - menuX) + 'px; left: auto;' : 'left: ' + menuX + 'px; right: auto;'}
+            ${menuY > window.innerHeight / 2 ? 'bottom: ' + (window.innerHeight - menuY) + 'px; top: auto;' : 'top: ' + menuY + 'px; bottom: auto;'}
+         `">
+        <button @click="$store.wm.toggleFavorite(selectedWin); closeMenu();">
+            <template x-if="$store.wm.isFavorite(selectedWin?.hwnd)">
+                <span>Quitar de favoritos</span>
+            </template>
+            <template x-if="!$store.wm.isFavorite(selectedWin?.hwnd)">
+                <span>Guardar en favoritos</span>
+            </template>
+        </button>
+    </div>
 </body>
 </html>

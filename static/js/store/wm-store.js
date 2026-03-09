@@ -247,6 +247,20 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
+        async saveDesktopSnapshot() {
+            if (!this.activeDesktopId) return;
+            this.savingSnapshot = true;
+            try {
+                const response = await fetch(`/api/snapshots/desktop/${this.activeDesktopId}`, { method: 'POST' });
+                if (!response.ok) throw new Error('Failed to save desktop snapshot');
+                await this.loadRecentSnapshots();
+            } catch (e) {
+                console.error('Save Desktop Snapshot Error:', e);
+            } finally {
+                this.savingSnapshot = false;
+            }
+        },
+
         async loadRecentSnapshots() {
             try {
                 const response = await fetch('/api/snapshots?limit=8');
