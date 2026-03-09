@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Workspace Monitor Studio</title>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+  <script src="/js/store/studio-store.js"></script>
+  <style>
+    body { font-family: Inter, Arial, sans-serif; background: #0d0d0d; color: #eee; margin: 0; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 18px; }
+    .tabs button { margin-right: 8px; background: #1e1e1e; color: #bbb; border: 1px solid #333; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+    .tabs button.active { background: #2b2b2b; color: #fff; }
+    .card { border: 1px solid #2a2a2a; background: #141414; border-radius: 10px; padding: 12px; margin-top: 12px; }
+    input, textarea, select { width: 100%; background: #101010; border: 1px solid #333; color: #eee; border-radius: 6px; padding: 8px; margin-top: 6px; box-sizing: border-box; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .muted { color: #888; font-size: 12px; }
+    button.action { background: #222; color: #eee; border: 1px solid #333; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+    button.action:hover { background: #2b2b2b; }
+  </style>
+</head>
+<body x-data x-init="$store.wm.init()">
+<div class="wrap">
+  <div class="tabs">
+    <button :class="{active:$store.wm.mode==='projects'}" @click="$store.wm.mode='projects'; $store.wm.loadProjects()">Projects</button>
+    <button :class="{active:$store.wm.mode==='snapshots'}" @click="$store.wm.mode='snapshots'; $store.wm.loadRecentSnapshots()">Snapshots</button>
+  </div>
+
+  <section x-show="$store.wm.mode==='projects'" class="card">
+    <h3>Projects</h3>
+    <div class="grid">
+      <div>
+        <label>Name<input x-model="$store.wm.newProject.manual_name"></label>
+        <label>Root Path<input x-model="$store.wm.newProject.root_path"></label>
+        <label>Notes<textarea x-model="$store.wm.newProject.notes"></textarea></label>
+        <button class="action" @click="$store.wm.createProject()">Create Project</button>
+      </div>
+      <div>
+        <template x-for="p in $store.wm.projects" :key="p.id">
+          <div class="card">
+            <b x-text="p.manual_name || p.inferred_name"></b>
+            <div class="muted" x-text="p.root_path"></div>
+            <div class="row">
+              <button class="action" @click="$store.wm.selectProject(p.id)">Open</button>
+              <button class="action" @click="$store.wm.launchProject(p.id)">Launch</button>
+              <button class="action" @click="$store.wm.deleteProject(p.id)">Archive</button>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+    <div class="card" x-show="$store.wm.activeProject">
+      <h4 x-text="$store.wm.activeProject?.manual_name || 'Project detail'"></h4>
+      <div class="muted" x-text="$store.wm.activeProject?.root_path"></div>
+      <div class="row">
+        <button class="action" @click="$store.wm.addDefaultTerminal()">+ Terminal</button>
+        <button class="action" @click="$store.wm.addDefaultApp()">+ VSCode App</button>
+      </div>
+      <div class="muted" x-show="$store.wm.launchResult" x-text="'Last launch items: ' + ($store.wm.launchResult?.items?.length || 0)"></div>
+    </div>
+  </section>
+
+  <section x-show="$store.wm.mode==='snapshots'" class="card">
+    <h3>Snapshots</h3>
+    <div class="row">
+      <button class="action" @click="$store.wm.saveSnapshot()">Save Snapshot</button>
+    </div>
+    <div class="row" style="margin-top: 12px;">
+      <select x-model="$store.wm.snapshotFilters.scope" @change="$store.wm.loadRecentSnapshots()"><option value="">all</option><option value="full">full</option><option value="desktop">desktop</option></select>
+      <input placeholder="desktop #" x-model="$store.wm.snapshotFilters.desktop_number" @change="$store.wm.loadRecentSnapshots()"/>
+    </div>
+    <template x-for="s in $store.wm.recentSnapshots" :key="s.id">
+      <div class="card">
+        <b x-text="s.title || ('Snapshot #' + s.id)"></b>
+        <div class="muted" x-text="s.note || '-'"></div>
+        <div class="muted" x-text="s.scope + ' · windows: ' + s.window_count"></div>
+        <div class="row"><button class="action" @click="$store.wm.openSnapshot(s.id)">Detail</button><button class="action" @click="$store.wm.restoreSnapshot(s.id)">Restore Snapshot</button></div>
+      </div>
+    </template>
+    <div class="card" x-show="$store.wm.snapshotDetail">
+      <h4 x-text="$store.wm.snapshotDetail?.snapshot?.title || 'Snapshot detail'"></h4>
+      <input x-model="$store.wm.snapshotEdit.title" placeholder="Title" />
+      <textarea x-model="$store.wm.snapshotEdit.note"></textarea>
+      <div class="row"><button class="action" @click="$store.wm.saveSnapshotMeta()">Save metadata</button><button class="action" @click="$store.wm.loadRestorePlan()">Refresh restore plan</button></div>
+      <template x-for="i in $store.wm.restorePlan?.items || []" :key="i.window_snapshot_id"><div class="muted" x-text="i.status + ' · ' + i.title"></div></template>
+    </div>
+  </section>
+</div>
+</body>
+</html>

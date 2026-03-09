@@ -44,3 +44,13 @@ def test_project_and_profiles_crud(tmp_path):
     assert len(loaded["app_profiles"]) == 1
     assert terminal["preferred_zone"] == "left"
     assert app["app_type"] == "vscode"
+
+
+def test_delete_project_is_soft_delete(tmp_path):
+    db = SQLitePersistence(str(tmp_path / "wm.db"))
+    project = db.create_project({"manual_name": "A", "root_path": "/repo/a"})
+    db.delete_project(project["id"])
+    assert db.list_projects() == []
+    archived = db.get_project(project["id"])
+    assert archived is not None
+    assert archived["is_active"] == 0

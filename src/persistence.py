@@ -339,7 +339,7 @@ class SQLitePersistence:
 
     def delete_project(self, project_id: int) -> None:
         with self.connect() as conn:
-            conn.execute("DELETE FROM projects WHERE id = ?", (project_id,))
+            conn.execute("UPDATE projects SET is_active = 0, updated_at = ? WHERE id = ?", (self.now_iso(), project_id))
 
     def add_project_terminal(self, project_id: int, payload: dict[str, Any]) -> dict[str, Any]:
         now = self.now_iso()

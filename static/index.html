@@ -1,87 +1,378 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Workspace Monitor</title>
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
-  <script src="/js/store/wm-store.js"></script>
-  <style>
-    body{font-family:Inter,Arial,sans-serif;background:#0d0d0d;color:#eee;margin:0} .wrap{max-width:1100px;margin:0 auto;padding:18px}
-    .tabs button{margin-right:8px;background:#1e1e1e;color:#bbb;border:1px solid #333;padding:8px 12px;border-radius:8px;cursor:pointer}
-    .tabs button.active{background:#2b2b2b;color:#fff}.card{border:1px solid #2a2a2a;background:#141414;border-radius:10px;padding:12px;margin-top:12px}
-    input,textarea,select{width:100%;background:#101010;border:1px solid #333;color:#eee;border-radius:6px;padding:8px;margin-top:6px}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.row{display:flex;gap:8px}.muted{color:#888;font-size:12px}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WM / Global Dashboard</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <script src="/js/store/wm-store.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+        :root {
+            --bg-main: #070707; --bg-sidebar: #0a0a0a; --bg-card: #121212; --border-base: #1a1a1a;
+            --text-main: #d1d1d1; --text-muted: #555555;
+            --c-terminal: #22c55e; --c-code: #3b82f6; --c-web: #f59e0b; --c-comms: #a855f7; --c-files: #818cf8; --c-system: #6b7280;
+        }
+        body { background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        aside { width: 260px; background-color: var(--bg-sidebar); border-right: 1px solid var(--border-base); display: flex; flex-direction: column; }
+        .sidebar-header { padding: 1.25rem; border-bottom: 1px solid var(--border-base); font-weight: 700; color: #eee; }
+        .desktop-list { flex: 1; overflow-y: auto; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.25rem; }
+        .desktop-item { width: 100%; background: transparent; border: 1px solid transparent; padding: 0.75rem; border-radius: 0.375rem; text-align: left; cursor: pointer; display: flex; gap: 0.75rem; color: var(--text-muted); transition: none; }
+        .desktop-item:hover { background-color: rgba(255,255,255,0.03); }
+        .desktop-item.active { background-color: #141414; color: white; border-color: #222; }
+        .desktop-num { font-size: 0.7rem; width: 1.5rem; color: var(--text-muted); }
+        .active .desktop-num { color: var(--c-terminal); font-weight: bold; }
+        .desktop-info { display: flex; flex-direction: column; overflow: hidden; }
+        .desktop-name { font-size: 0.875rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .desktop-summary { font-size: 0.65rem; font-family: 'JetBrains Mono'; margin-top: 0.25rem; opacity: 0.5; }
+        main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        header { height: 60px; padding: 0 2rem; border-bottom: 1px solid var(--border-base); display: flex; align-items: center; justify-content: space-between; background: #080808; }
+        .view-switcher { display: flex; background: #111; padding: 3px; border-radius: 8px; border: 1px solid var(--border-base); }
+        .view-btn { background: transparent; border: none; color: #555; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: 600; }
+        .view-btn.active { background: #222; color: #fff; }
+        .content-area { flex: 1; overflow-y: auto; padding: 2rem; }
+        .max-width-container { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem; }
+        .bucket-card { border-radius: 4px; overflow: hidden; display: flex; flex-direction: column; margin-bottom: 1rem; }
+        .bucket-header { padding: 0.6rem 1.25rem; display: flex; align-items: center; gap: 0.6rem; background: rgba(0,0,0,0.2); }
+        .bucket-header h3 { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin: 0; }
+        .bucket-content { padding: 1.25rem; display: flex; flex-direction: column; gap: 0.6rem; }
+        .cat-terminal { background: rgba(34, 197, 94, 0.05); border: 1px solid rgba(34, 197, 94, 0.2); }
+        .cat-terminal h3 { color: var(--c-terminal); }
+        .cat-code { background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); }
+        .cat-code h3 { color: var(--c-code); }
+        .cat-web { background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.2); }
+        .cat-web h3 { color: var(--c-web); }
+        .cat-comms { background: rgba(168, 85, 247, 0.05); border: 1px solid rgba(168, 85, 247, 0.2); }
+        .cat-comms h3 { color: var(--c-comms); }
+        .cat-files { background: rgba(129, 140, 248, 0.05); border: 1px solid rgba(129, 140, 248, 0.2); }
+        .cat-files h3 { color: var(--c-files); }
+        .cat-noise { background: transparent; border: 1px dashed rgba(107, 114, 128, 0.3); opacity: 0.6; }
+        .cat-noise h3 { color: var(--c-system); }
+        .terminal-line { font-family: 'JetBrains Mono'; font-size: 0.85rem; color: #aaa; display: flex; gap: 0.75rem; align-items: center; cursor: pointer; transition: color 0.15s ease; }
+        .terminal-line:hover { color: #fff; }
+        .terminal-anchor { color: #fff; font-weight: 600; }
+        .pulse-dot { width: 7px; height: 7px; background: var(--c-terminal); border-radius: 50%; box-shadow: 0 0 8px var(--c-terminal); animation: pulse 2s infinite; }
+        .list-item { font-size: 0.85rem; display: flex; align-items: start; gap: 0.6rem; color: #bbb; cursor: pointer; transition: color 0.15s ease; }
+        .list-item:hover { color: #fff; }
+        .dot-marker { width: 5px; height: 5px; border-radius: 50%; margin-top: 0.45rem; flex-shrink: 0; opacity: 0.5; }
+        .sub-label { font-size: 0.6rem; font-weight: 700; color: #444; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.4rem; margin-top: 0.5rem; }
+        .radar-grid { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start; }
+        .radar-col { width: 320px; border-radius: 6px; display: flex; flex-direction: column; border: 1px solid var(--border-base); overflow: hidden; }
+        .radar-col-header { padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .radar-col-title { font-size: 0.85rem; font-weight: 700; color: #fff; }
+        .radar-section { padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+        .radar-section-title { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #444; }
+        .file-chip { display: inline-flex; align-items: center; background: #161616; border: 1px solid #222; padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono'; font-size: 0.7rem; color: #888; }
+        .file-chip.active { color: var(--c-code); border-color: rgba(59, 130, 246, 0.3); }
+        .custom-context-menu { position: fixed; z-index: 9999; background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 0.5rem; min-width: 220px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; gap: 2px; }
+        .custom-context-menu button { background: transparent; border: none; color: #ccc; text-align: left; padding: 8px 12px; cursor: pointer; font-size: 0.8rem; border-radius: 4px; transition: background 0.1s; display: flex; align-items: center; gap: 0.5rem; }
+        .custom-context-menu button:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        .slide-enter-active { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .slide-leave-active { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        .slide-enter-from, .slide-leave-to { transform: translateX(100%); }
+        .slide-enter-to, .slide-leave-from { transform: translateX(0); }
+        [x-cloak] { display: none !important; }
+    </style>
 </head>
-<body x-data x-init="$store.wm.init()">
-<div class="wrap">
-  <div class="tabs">
-    <button :class="{active:$store.wm.mode==='live'}" @click="$store.wm.mode='live'">Live</button>
-    <button :class="{active:$store.wm.mode==='projects'}" @click="$store.wm.mode='projects'; $store.wm.loadProjects()">Projects</button>
-    <button :class="{active:$store.wm.mode==='snapshots'}" @click="$store.wm.mode='snapshots'; $store.wm.loadRecentSnapshots()">Snapshots</button>
-  </div>
+<body x-data="{
+    menuOpen: false,
+    menuX: 0,
+    menuY: 0,
+    selectedWin: null,
+    showFavorites: false,
+    openMenu(event, win) {
+        this.menuOpen = true;
+        this.menuX = event.clientX;
+        this.menuY = event.clientY;
+        this.selectedWin = win;
+    },
+    closeMenu() {
+        this.menuOpen = false;
+        this.selectedWin = null;
+    }
+}">
+    <aside x-show="$store.wm.viewMode === 'detail'">
+        <div class="sidebar-header">WM / Cluster View</div>
+        <div class="desktop-list">
+            <template x-for="d in $store.wm.desktopsWithSummary" :key="d.id">
+                <button class="desktop-item" @dblclick="$store.wm.jumpToDesktop(d.number)" title="Doble clic para saltar al escritorio" :class="{ 'active': $store.wm.activeDesktopId === d.id }" @click="$store.wm.setActiveDesktop(d.id)">
+                    <span class="desktop-num font-mono" x-text="'[' + d.number + ']'"></span>
+                    <div class="desktop-info">
+                        <span class="desktop-name" x-text="d.name"></span>
+                        <span class="desktop-summary" x-text="d.semanticSummary"></span>
+                    </div>
+                </button>
+            </template>
+        </div>
+    </aside>
+    <main x-data x-cloak>
+        <header>
+            <h2 x-show="$store.wm.viewMode === 'detail'"><span style="color: #666">Escritorio <span x-text="$store.wm.activeDesktop?.number"></span>:</span> <span x-text="$store.wm.activeDesktop?.name"></span></h2>
+            <h2 x-show="$store.wm.viewMode !== 'detail'" x-text="$store.wm.viewMode === 'radar' ? 'Radar: Desktops' : 'Matrix: Categories'"></h2>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <button @click="showFavorites = true" class="view-btn" style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-base);">
+                    <span>★</span>
+                    Favoritos
+                </button>
+                <button @click="$store.wm.saveSnapshot()" class="view-btn" style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-base);" :disabled="$store.wm.savingSnapshot">
+                    <span x-show="$store.wm.savingSnapshot">Saving...</span>
+                    <span x-show="!$store.wm.savingSnapshot">Save Snapshot</span>
+                </button>
+                <button @click="$store.wm.refresh()" class="view-btn" style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-base);" :disabled="$store.wm.online === 'loading'">
+                    <span x-show="$store.wm.online === 'loading'">⏳</span>
+                    <span x-show="$store.wm.online !== 'loading'">🔄</span>
+                    Refresh
+                </button>
+                <div class="view-switcher">
+                    <button class="view-btn" :class="{ 'active': $store.wm.viewMode === 'detail' }" @click="$store.wm.setViewMode('detail')">Detail</button>
+                    <button class="view-btn" :class="{ 'active': $store.wm.viewMode === 'radar' }" @click="$store.wm.setViewMode('radar')">Radar</button>
+                    <button class="view-btn" :class="{ 'active': $store.wm.viewMode === 'matrix' }" @click="$store.wm.setViewMode('matrix')">Matrix</button>
+                </div>
+            </div>
+        </header>
+        <div style="padding: 0.75rem 2rem; border-bottom: 1px solid var(--border-base); background: #0b0b0b;">
+            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: .08em; color: #6b7280; margin-bottom: .35rem;">Recent snapshots</div>
+            <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+                <template x-for="snap in $store.wm.recentSnapshots" :key="snap.id">
+                    <div style="border:1px solid #252525; border-radius:6px; padding:.35rem .55rem; font-size:.72rem;">
+                        <span class="font-mono" x-text="'#' + snap.id"></span> · <span x-text="snap.capture_mode"></span> · <span x-text="snap.window_count + 'w'"></span>
+                    </div>
+                </template>
+                <div x-show="$store.wm.recentSnapshots.length === 0" style="font-size:.75rem; color:#555;">No snapshots yet.</div>
+            </div>
+        </div>
+        <div class="content-area">
+            <div x-show="$store.wm.viewMode === 'detail'" class="max-width-container">
+                <template x-if="$store.wm.activeDesktopId">
+                    <div>
+                        <div class="bucket-card cat-terminal" x-show="$store.wm.activeBuckets.terminal?.length > 0">
+                            <div class="bucket-header"><h3>Terminales</h3></div>
+                            <div class="bucket-content">
+                                <template x-for="t in $store.wm.activeBuckets.terminal" :key="t.hwnd">
+                                    <div style="margin-bottom: 0.5rem;">
+                                        <div class="terminal-line" @click="$store.wm.jumpToWindow(t.hwnd)" @contextmenu.prevent="openMenu($event, t)" title="Saltar a la ventana">
+                                            <span>&gt;</span><span :class="t.importance === 'high' ? 'terminal-anchor' : ''" x-text="t.terminalName || t.title"></span><template x-if="t.importance === 'high'"><div class="pulse-dot"></div></template>
+                                        </div>
+                                        <template x-if="t.cli_context && t.cli_context.active_worker">
+                                            <div style="margin-left: 1rem; margin-top: 0.25rem; padding: 0.35rem; background: rgba(0,0,0,0.25); border-radius: 4px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.03);">
+                                                <div style="color: var(--c-terminal); font-weight: 600; font-family: 'JetBrains Mono';" x-text="t.cli_context.active_worker.name"></div>
+                                                <div style="color: var(--text-muted); font-size: 0.65rem; font-family: 'JetBrains Mono'; margin-top: 2px;" class="truncate" :title="t.cli_context.active_worker.cwd">
+                                                    📁 <span x-text="t.cli_context.active_worker.cwd"></span>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <template x-if="t.cli_context && !t.cli_context.active_worker && t.cli_context.terminal_cwd">
+                                            <div style="margin-left: 1rem; margin-top: 0.2rem; font-size: 0.65rem; color: #444; font-family: 'JetBrains Mono';">
+                                                💤 Idle: <span x-text="t.cli_context.terminal_cwd"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+                            </div>                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+                            <div class="bucket-card cat-code" x-show="$store.wm.activeBuckets.code?.files.length > 0 || $store.wm.activeBuckets.code?.tools.length > 0">
+                                <div class="bucket-header"><h3>Desarrollo</h3></div>
+                                <div class="bucket-content">
+                                    <template x-for="win in $store.wm.activeBuckets.code?.files" :key="win.hwnd"><div class="list-item" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><div class="dot-marker" style="background: var(--c-code);"></div><span x-text="win.title"></span></div></template>
+                                    <template x-for="win in $store.wm.activeBuckets.code?.tools" :key="win.hwnd"><div class="list-item" style="opacity: 0.6;" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><div class="dot-marker" style="background: var(--c-code); opacity: 0.3;"></div><span x-text="win.title"></span></div></template>
+                                </div>
+                            </div>
+                            <div class="bucket-card cat-web" x-show="$store.wm.activeBuckets.web?.apps.length > 0 || $store.wm.activeBuckets.web?.browsing.length > 0">
+                                <div class="bucket-header"><h3>Web</h3></div>
+                                <div class="bucket-content">
+                                    <template x-for="win in $store.wm.activeBuckets.web?.apps" :key="win.hwnd"><div class="list-item" style="color: #eee;" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><div class="dot-marker" style="background: var(--c-web); box-shadow: 0 0 4px var(--c-web);"></div><span x-text="win.title"></span></div></template>
+                                    <template x-for="win in $store.wm.activeBuckets.web?.browsing" :key="win.hwnd"><div class="list-item" style="opacity: 0.7;" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><div class="dot-marker" style="background: var(--c-web); opacity: 0.3;"></div><span x-text="win.title"></span></div></template>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+                            <div class="bucket-card cat-files" x-show="$store.wm.activeBuckets.files?.length > 0">
+                                <div class="bucket-header"><h3>Archivos</h3></div>
+                                <div class="bucket-content">
+                                    <template x-for="win in $store.wm.activeBuckets.files" :key="win.hwnd"><div class="list-item font-mono" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><span style="color: var(--c-files); opacity: 0.5;">./</span><span x-text="win.title"></span></div></template>
+                                </div>
+                            </div>
+                            <div class="bucket-card cat-comms" x-show="$store.wm.activeBuckets.comms?.length > 0">
+                                <div class="bucket-header"><h3>Comunicación</h3></div>
+                                <div class="bucket-content">
+                                    <template x-for="win in $store.wm.activeBuckets.comms" :key="win.hwnd"><div class="list-item" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><div class="dot-marker" style="background: var(--c-comms);"></div><span x-text="win.title"></span></div></template>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bucket-card cat-noise" x-show="$store.wm.activeBuckets.system?.length > 0">
+                            <div class="bucket-header"><h3>Sistema</h3></div>
+                            <div class="bucket-content"><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.7rem; color: #555;">
+                                <template x-for="win in $store.wm.activeBuckets.system" :key="win.hwnd"><div class="truncate" x-text="'• ' + win.title"></div></template>
+                            </div></div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+            <div x-show="$store.wm.viewMode === 'radar'" class="radar-grid">
+                <template x-for="d in $store.wm.desktopsWithSummary" :key="d.id">
+                    <div class="radar-col" style="background: var(--bg-card); border-color: #222;" x-show="d.hasActivity">
+                        <div class="radar-col-header" style="background: rgba(255,255,255,0.02);">
+                            <div class="radar-col-title" x-text="d.name"></div>
+                            <div class="radar-col-num font-mono" style="color: #666;" x-text="'[' + d.number + ']'"></div>
+                        </div>
+                        <div style="padding: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                            <!-- Terminales -->
+                            <template x-if="d.buckets && d.buckets.terminal && d.buckets.terminal.length > 0">
+                                <div x-data="{ expanded: false }" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; overflow: hidden;">
+                                    <div @click="expanded = !expanded" style="padding: 0.6rem 0.75rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--c-terminal);">
+                                        <span x-text="d.buckets.terminal.length + ' Terminales'"></span>
+                                        <span x-text="expanded ? '▲' : '▼'" style="font-size: 0.55rem; opacity: 0.5;"></span>
+                                    </div>
+                                    <div x-show="expanded" style="padding: 0 0.75rem 0.75rem 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                                        <template x-for="t in d.buckets.terminal" :key="t.hwnd">
+                                            <div>
+                                                <div class="terminal-line" style="font-size: 0.75rem;" @click="$store.wm.jumpToWindow(t.hwnd)" @contextmenu.prevent="openMenu($event, t)" title="Saltar a la ventana">
+                                                    <span :class="t.importance === 'high' ? 'terminal-anchor' : ''" x-text="t.terminalName || t.title"></span>
+                                                </div>
+                                                <template x-if="t.cli_context && t.cli_context.active_worker">
+                                                    <div style="margin-left: 0.5rem; font-size: 0.65rem; color: var(--c-terminal); opacity: 0.8; font-family: 'JetBrains Mono'; margin-top: 2px;">
+                                                        ↳ <span x-text="t.cli_context.active_worker.name"></span>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
 
-  <section x-show="$store.wm.mode==='live'" class="card">
-    <h3>Live</h3>
-    <div class="row">
-      <button @click="$store.wm.refresh()">Refresh</button>
-      <button @click="$store.wm.saveSnapshot()">Save Snapshot</button>
-      <button @click="$store.wm.saveDesktopSnapshot()">Save Desktop Snapshot</button>
-    </div>
-    <p class="muted" x-text="$store.wm.online ? 'Online' : 'Offline'"></p>
-    <template x-for="d in $store.wm.raw.desktops" :key="d.id"><div class="card"><b x-text="'Desktop '+d.number"></b><div class="muted" x-text="d.name"></div></div></template>
-  </section>
+                            <!-- Desarrollo -->
+                            <template x-if="d.buckets && d.buckets.code && (d.buckets.code.files.length > 0 || d.buckets.code.tools.length > 0)">
+                                <div x-data="{ expanded: false }" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; overflow: hidden;">
+                                    <div @click="expanded = !expanded" style="padding: 0.6rem 0.75rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--c-code);">
+                                        <span x-text="(d.buckets.code.files.length + d.buckets.code.tools.length) + ' IDE / Tools'"></span>
+                                        <span x-text="expanded ? '▲' : '▼'" style="font-size: 0.55rem; opacity: 0.5;"></span>
+                                    </div>
+                                    <div x-show="expanded" style="padding: 0 0.75rem 0.75rem 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                                        <template x-for="win in d.buckets.code.files" :key="win.hwnd"><div class="list-item" style="font-size: 0.75rem;" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><span x-text="win.title"></span></div></template>
+                                        <template x-for="win in d.buckets.code.tools" :key="win.hwnd"><div class="list-item" style="font-size: 0.75rem; opacity: 0.6;" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><span x-text="win.title"></span></div></template>
+                                    </div>
+                                </div>
+                            </template>
 
-  <section x-show="$store.wm.mode==='projects'" class="card">
-    <h3>Projects</h3>
-    <div class="grid">
-      <div>
-        <label>Name<input x-model="$store.wm.newProject.manual_name"></label>
-        <label>Root Path<input x-model="$store.wm.newProject.root_path"></label>
-        <label>Notes<textarea x-model="$store.wm.newProject.notes"></textarea></label>
-        <button @click="$store.wm.createProject()">Create Project</button>
-      </div>
-      <div>
-        <template x-for="p in $store.wm.projects" :key="p.id">
-          <div class="card">
-            <b x-text="p.manual_name || p.inferred_name"></b>
-            <div class="muted" x-text="p.root_path"></div>
-            <div class="row"><button @click="$store.wm.selectProject(p.id)">Open</button><button @click="$store.wm.launchProject(p.id)">Launch</button><button @click="$store.wm.deleteProject(p.id)">Delete</button></div>
-          </div>
-        </template>
-      </div>
-    </div>
-    <div class="card" x-show="$store.wm.activeProject">
-      <h4 x-text="$store.wm.activeProject?.manual_name || 'Project detail'"></h4>
-      <div class="row">
-        <button @click="$store.wm.addDefaultTerminal()">+ Terminal</button>
-        <button @click="$store.wm.addDefaultApp()">+ VSCode App</button>
-      </div>
-    </div>
-  </section>
+                            <!-- Web -->
+                            <template x-if="d.buckets && d.buckets.web && (d.buckets.web.apps.length > 0 || d.buckets.web.browsing.length > 0)">
+                                <div x-data="{ expanded: false }" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; overflow: hidden;">
+                                    <div @click="expanded = !expanded" style="padding: 0.6rem 0.75rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--c-web);">
+                                        <span x-text="(d.buckets.web.apps.length + d.buckets.web.browsing.length) + ' Navegadores'"></span>
+                                        <span x-text="expanded ? '▲' : '▼'" style="font-size: 0.55rem; opacity: 0.5;"></span>
+                                    </div>
+                                    <div x-show="expanded" style="padding: 0 0.75rem 0.75rem 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                                        <template x-for="win in d.buckets.web.apps" :key="win.hwnd"><div class="list-item" style="font-size: 0.75rem; color: #eee;" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><span x-text="win.title"></span></div></template>
+                                        <template x-for="win in d.buckets.web.browsing" :key="win.hwnd"><div class="list-item" style="font-size: 0.75rem; opacity: 0.7;" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><span x-text="win.title"></span></div></template>
+                                    </div>
+                                </div>
+                            </template>
 
-  <section x-show="$store.wm.mode==='snapshots'" class="card">
-    <h3>Snapshots</h3>
-    <div class="row">
-      <select x-model="$store.wm.snapshotFilters.scope" @change="$store.wm.loadRecentSnapshots()"><option value="">all</option><option value="full">full</option><option value="desktop">desktop</option></select>
-      <input placeholder="desktop #" x-model="$store.wm.snapshotFilters.desktop_number" @change="$store.wm.loadRecentSnapshots()"/>
+                            <!-- Archivos -->
+                            <template x-if="d.buckets && d.buckets.files && d.buckets.files.length > 0">
+                                <div x-data="{ expanded: false }" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; overflow: hidden;">
+                                    <div @click="expanded = !expanded" style="padding: 0.6rem 0.75rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--c-files);">
+                                        <span x-text="d.buckets.files.length + ' Exploradores'"></span>
+                                        <span x-text="expanded ? '▲' : '▼'" style="font-size: 0.55rem; opacity: 0.5;"></span>
+                                    </div>
+                                    <div x-show="expanded" style="padding: 0 0.75rem 0.75rem 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                                        <template x-for="win in d.buckets.files" :key="win.hwnd"><div class="list-item font-mono" style="font-size: 0.75rem;" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><span x-text="win.title"></span></div></template>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Comms -->
+                            <template x-if="d.buckets && d.buckets.comms && d.buckets.comms.length > 0">
+                                <div x-data="{ expanded: false }" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; overflow: hidden;">
+                                    <div @click="expanded = !expanded" style="padding: 0.6rem 0.75rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--c-comms);">
+                                        <span x-text="d.buckets.comms.length + ' Comunicación'"></span>
+                                        <span x-text="expanded ? '▲' : '▼'" style="font-size: 0.55rem; opacity: 0.5;"></span>
+                                    </div>
+                                    <div x-show="expanded" style="padding: 0 0.75rem 0.75rem 0.75rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                                        <template x-for="win in d.buckets.comms" :key="win.hwnd"><div class="list-item" style="font-size: 0.75rem;" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana"><span x-text="win.title"></span></div></template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+            <div x-show="$store.wm.viewMode === 'matrix'" class="radar-grid">
+                <template x-for="cat in $store.wm.allWindowsByCategory" :key="cat.id">
+                    <div class="radar-col" :class="'cat-' + cat.id" style="width: 350px;">
+                        <div class="radar-col-header"><div class="radar-col-title" x-text="cat.label"></div><div class="radar-col-num" x-text="cat.totalCount"></div></div>
+                        <div class="radar-section">
+                            <template x-for="group in cat.groups" :key="group.desktopName">
+                                <div style="margin-bottom: 1rem;">
+                                    <div class="sub-label" style="color: #555; border-bottom: 1px solid #1a1a1a; padding-bottom: 2px;" x-text="group.desktopName"></div>
+                                    <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 6px;">
+                                        <template x-for="win in group.windows" :key="win.hwnd">
+                                            <div style="margin-bottom: 2px;">
+                                                <div class="list-item" style="font-size: 0.75rem;" @click="$store.wm.jumpToWindow(win.hwnd)" @contextmenu.prevent="openMenu($event, win)" title="Saltar a la ventana">
+                                                    <div class="dot-marker" :style="{ background: cat.color }"></div>
+                                                    <span x-text="win.terminalName || win.title"></span>
+                                                </div>
+                                                <template x-if="win.cli_context && win.cli_context.active_worker">
+                                                    <div style="margin-left: 1rem; font-size: 0.65rem; color: var(--c-terminal); opacity: 0.8; font-family: 'JetBrains Mono';">
+                                                        ↳ <span x-text="win.cli_context.active_worker.name"></span>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </main>
+    <div x-show="showFavorites"
+         x-transition:enter="slide-enter-active"
+         x-transition:enter-start="slide-enter-from"
+         x-transition:enter-end="slide-enter-to"
+         x-transition:leave="slide-leave-active"
+         x-transition:leave-start="slide-leave-from"
+         x-transition:leave-end="slide-leave-to"
+         x-cloak
+         style="position: fixed; right: 0; top: 0; bottom: 0; width: 300px; background: var(--bg-sidebar); border-left: 1px solid var(--border-base); z-index: 1000; display: flex; flex-direction: column; box-shadow: -5px 0 15px rgba(0,0,0,0.5);">
+        <div class="sidebar-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Favoritos</span>
+            <button @click="showFavorites = false" style="background: none; border: none; color: #aaa; cursor: pointer; font-size: 1rem;">×</button>
+        </div>
+        <div style="padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem;">
+            <template x-if="$store.wm.favorites.length === 0">
+                <div style="color: #666; font-size: 0.8rem; text-align: center; margin-top: 2rem;">No hay favoritos guardados.</div>
+            </template>
+            <template x-for="fav in $store.wm.favorites" :key="fav.hwnd">
+                <div class="list-item" @click="$store.wm.jumpToWindow(fav.hwnd)" title="Saltar a la ventana" style="padding: 0.75rem; background: rgba(255,255,255,0.03); border-radius: 4px; border: 1px solid var(--border-base); display: flex; align-items: center;">
+                    <div class="dot-marker" style="background: #eab308; margin-top: 0;"></div>
+                    <span x-text="fav.title" style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
+                    <button @click.stop="$store.wm.toggleFavorite(fav)" style="background: none; border: none; cursor: pointer; color: #ef4444; margin-left: 0.5rem;">×</button>
+                </div>
+            </template>
+        </div>
     </div>
-    <template x-for="s in $store.wm.recentSnapshots" :key="s.id">
-      <div class="card">
-        <b x-text="s.title || ('Snapshot #' + s.id)"></b>
-        <div class="muted" x-text="s.note || '-' "></div>
-        <div class="muted" x-text="s.scope + ' · windows: '+s.window_count"></div>
-        <div class="row"><button @click="$store.wm.openSnapshot(s.id)">Detail</button><button @click="$store.wm.restoreSnapshot(s.id)">Restore Snapshot</button></div>
-      </div>
-    </template>
-    <div class="card" x-show="$store.wm.snapshotDetail">
-      <h4 x-text="$store.wm.snapshotDetail?.snapshot?.title || 'Snapshot detail'"></h4>
-      <textarea x-model="$store.wm.snapshotEdit.note"></textarea>
-      <div class="row"><button @click="$store.wm.saveSnapshotMeta()">Save note</button><button @click="$store.wm.loadRestorePlan()">Refresh restore plan</button></div>
-      <template x-for="i in $store.wm.restorePlan?.items || []" :key="i.window_snapshot_id"><div class="muted" x-text="i.status + ' · ' + i.title"></div></template>
+    <div id="ctx-menu"
+         x-show="menuOpen"
+         @click.away="closeMenu()"
+         x-cloak
+         class="custom-context-menu"
+         :style="`
+            ${menuX > window.innerWidth / 2 ? 'right: ' + (window.innerWidth - menuX) + 'px; left: auto;' : 'left: ' + menuX + 'px; right: auto;'}
+            ${menuY > window.innerHeight / 2 ? 'bottom: ' + (window.innerHeight - menuY) + 'px; top: auto;' : 'top: ' + menuY + 'px; bottom: auto;'}
+         `">
+        <button @click="$store.wm.toggleFavorite(selectedWin); closeMenu();">
+            <template x-if="$store.wm.isFavorite(selectedWin?.hwnd)">
+                <span>Quitar de favoritos</span>
+            </template>
+            <template x-if="!$store.wm.isFavorite(selectedWin?.hwnd)">
+                <span>Guardar en favoritos</span>
+            </template>
+        </button>
     </div>
-  </section>
-</div>
 </body>
 </html>

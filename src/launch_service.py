@@ -82,13 +82,13 @@ class LaunchService:
         for app in [a for a in project["app_profiles"] if a.get("auto_launch", 1)]:
             launch = self._launch_app(app, project)
             placement = {
-                "status": "partial" if app.get("preferred_zone") else "success",
+                "status": "planned" if app.get("preferred_zone") else "not_requested",
                 "zone": app.get("preferred_zone"),
                 "target_rect": self.zone_rect(app.get("preferred_zone", "center")),
             }
             if launch["status"] == "failed":
                 item_status = "failed"
-            elif placement["status"] == "partial" or desktop_result["status"] == "partial":
+            elif desktop_result["status"] == "partial":
                 item_status = "partial"
             else:
                 item_status = "success"
@@ -97,13 +97,13 @@ class LaunchService:
         for terminal in [t for t in project["terminal_profiles"] if t.get("auto_launch", 1)]:
             launch = self._launch_terminal(terminal)
             placement = {
-                "status": "partial" if terminal.get("preferred_zone") else "success",
+                "status": "planned" if terminal.get("preferred_zone") else "not_requested",
                 "zone": terminal.get("preferred_zone"),
                 "target_rect": self.zone_rect(terminal.get("preferred_zone", "center")),
             }
             if launch["status"] == "failed":
                 item_status = "failed"
-            elif placement["status"] == "partial" or desktop_result["status"] == "partial":
+            elif desktop_result["status"] == "partial":
                 item_status = "partial"
             else:
                 item_status = "success"

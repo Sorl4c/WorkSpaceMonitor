@@ -24,3 +24,10 @@ def test_snapshot_and_projects_api_flow(tmp_path):
 
     projects = asyncio.run(main.list_projects())
     assert projects["items"]
+
+
+def test_studio_route_exists():
+    from src import main
+
+    response = main.studio()
+    assert getattr(response, "path", "").endswith("static/studio.html")

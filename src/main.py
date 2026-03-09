@@ -3,6 +3,7 @@ from typing import Any
 
 try:
     from fastapi import FastAPI, HTTPException, Response
+    from fastapi.responses import FileResponse
     from fastapi.staticfiles import StaticFiles
 except Exception:  # pragma: no cover
     class HTTPException(Exception):
@@ -36,6 +37,10 @@ except Exception:  # pragma: no cover
     class StaticFiles:
         def __init__(self, *args, **kwargs):
             pass
+
+    class FileResponse:
+        def __init__(self, path: str):
+            self.path = path
 
 from src.desktop import get_virtual_desktops
 from src.jump import focus_window, jump_to_window
@@ -145,7 +150,13 @@ async def list_projects():
 
 @app.post("/api/projects")
 async def create_project(payload: dict[str, Any]):
-    return await asyncio.to_thread(persistence.create_project, payload)
+    try:
+        return await asyncio.to_thread(persistence.create_project, payload)
+    except Exception as exc:
+        detail = str(exc).lower()
+        if "unique" in detail or "constraint" in detail:
+            raise HTTPException(status_code=400, detail="Project root_path already exists") from exc
+        raise
 
 
 @app.get("/api/projects/{project_id}")
@@ -279,6 +290,11 @@ def read_terminals():
 @app.get("/api/status")
 def read_root():
     return {"status": "running", "message": "Workspace Monitor Daemon"}
+
+
+@app.get("/studio")
+def studio():
+    return FileResponse("static/studio.html")
 
 
 @app.get("/events")
