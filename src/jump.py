@@ -72,6 +72,20 @@ def jump_to_window(hwnd: int, desktop_settle_delay: float = 0.15) -> dict:
     logger.info("jump_sequence desktop=%s hwnd=%s risk=taskbar_focus_flashing", desktop, hwnd)
     if desktop and desktop["number"] is not None and desktop_settle_delay > 0:
         time.sleep(desktop_settle_delay)
-    focus_window(hwnd)
+    focus_error = None
+    focused = False
+    try:
+        focus_window(hwnd)
+        focused = True
+    except Exception as exc:
+        focus_error = str(exc)
+        logger.warning("jump_focus_failed hwnd=%s desktop=%s error=%s", hwnd, desktop, focus_error)
     _, pid = win32process.GetWindowThreadProcessId(hwnd)
-    return {"hwnd": hwnd, "title": win32gui.GetWindowText(hwnd), "pid": pid, "desktop": desktop}
+    return {
+        "hwnd": hwnd,
+        "title": win32gui.GetWindowText(hwnd),
+        "pid": pid,
+        "desktop": desktop,
+        "focused": focused,
+        "focus_error": focus_error,
+    }

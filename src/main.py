@@ -99,8 +99,13 @@ async def api_focus_window(hwnd: int):
 
 @app.post("/api/windows/{hwnd}/jump")
 async def api_jump_to_window(hwnd: int):
-    data = await asyncio.to_thread(jump_to_window, hwnd)
-    return {"status": "success", "data": data}
+    try:
+        data = await asyncio.to_thread(jump_to_window, hwnd)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return {"status": "success" if data.get("focused") else "partial", "data": data}
 
 @app.post("/api/desktops/{desktop_num}/go")
 async def api_go_to_desktop(desktop_num: int):

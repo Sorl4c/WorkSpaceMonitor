@@ -29,11 +29,8 @@ class SQLitePersistence:
         base = os.getenv("WORKSPACE_MONITOR_DATA_DIR")
         if base:
             return str(Path(base) / "workspace_monitor.db")
-        local_appdata = os.getenv("LOCALAPPDATA")
-        if local_appdata:
-            return str(Path(local_appdata) / "WorkspaceMonitor" / "workspace_monitor.db")
-        home = Path.home() / ".workspace_monitor"
-        return str(home / "workspace_monitor.db")
+        repo_root = Path(__file__).resolve().parent.parent
+        return str(repo_root / "workspace_monitor.db")
 
     @contextmanager
     def connect(self):
