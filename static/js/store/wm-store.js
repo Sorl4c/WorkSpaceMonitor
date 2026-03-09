@@ -5,6 +5,9 @@ document.addEventListener('alpine:init', () => {
         online: false,
         lastUpdate: Date.now(),
         activeDesktopId: null,
+        recentSnapshots: [],
+        latestSnapshot: null,
+        savingSnapshot: false,
         
         // Datos brutos
         raw: { desktops: [], windows: [], terminals: [] },
@@ -17,7 +20,8 @@ document.addEventListener('alpine:init', () => {
         },
 
         init() {
-            this.refresh(); 
+            this.refresh();
+            this.loadRecentSnapshots(); 
             setInterval(() => { this.lastUpdate = Date.now(); }, 5000);
         },
 
@@ -171,6 +175,32 @@ document.addEventListener('alpine:init', () => {
             this.viewMode = mode;
         },
 
+
+
+        async saveSnapshot() {
+            this.savingSnapshot = true;
+            try {
+                const response = await fetch('/api/snapshots', { method: 'POST' });
+                if (!response.ok) throw new Error('Failed to save snapshot');
+                await this.loadRecentSnapshots();
+            } catch (e) {
+                console.error('Save Snapshot Error:', e);
+            } finally {
+                this.savingSnapshot = false;
+            }
+        },
+
+        async loadRecentSnapshots() {
+            try {
+                const response = await fetch('/api/snapshots?limit=8');
+                if (!response.ok) throw new Error('Failed to list snapshots');
+                const data = await response.json();
+                this.recentSnapshots = data.items || [];
+                this.latestSnapshot = this.recentSnapshots[0] || null;
+            } catch (e) {
+                console.error('Snapshot List Error:', e);
+            }
+        },
         async jumpToWindow(hwnd) {
             try {
                 const response = await fetch(`/api/windows/${hwnd}/jump`, { method: 'POST' });
