@@ -2,7 +2,12 @@ from datetime import datetime, timezone
 from typing import Callable
 
 from src.persistence import SQLitePersistence
-from src.project_inference import infer_project_candidates
+from src.project_inference import (
+    infer_project_candidates,
+    infer_project_root_for_terminal,
+    infer_project_root_for_window,
+    infer_window_hwnd_for_terminal,
+)
 
 
 class SnapshotService:
@@ -49,6 +54,7 @@ class SnapshotService:
                     "desktop_guid": d.get("id"),
                     "desktop_number": d.get("number"),
                     "desktop_name": d.get("name"),
+                    "dominant_project_id": None,
                     "summary": {},
                 }
                 for d in desktops
@@ -57,15 +63,22 @@ class SnapshotService:
             "terminals": [],
         }
 
+        desktop_project_counts: dict[str, dict[int, int]] = {}
         for window in windows:
             semantic_type, semantic_subtype, importance = self._classify(
                 window.get("title", ""),
                 window.get("pid"),
                 terminal_pid_lookup,
             )
+            project_root = infer_project_root_for_window(window, terminals)
+            project_id = project_ids.get(project_root) if project_root else None
+            desktop_guid = window.get("desktop_id")
+            if desktop_guid and project_id:
+                desktop_project_counts.setdefault(desktop_guid, {})
+                desktop_project_counts[desktop_guid][project_id] = desktop_project_counts[desktop_guid].get(project_id, 0) + 1
             payload["windows"].append(
                 {
-                    "desktop_guid": window.get("desktop_id"),
+                    "desktop_guid": desktop_guid,
                     "hwnd_at_capture": window.get("hwnd"),
                     "pid_at_capture": window.get("pid"),
                     "process_name": window.get("process_name"),
@@ -74,19 +87,35 @@ class SnapshotService:
                     "semantic_type": semantic_type,
                     "semantic_subtype": semantic_subtype,
                     "importance": importance,
-                    "restore_hint": {"title": window.get("title")},
+                    "project_id": project_id,
+                    "restore_hint": {
+                        "title": window.get("title"),
+                        "project_root": project_root,
+                        "desktop_guid": desktop_guid,
+                    },
                 }
             )
 
+        for desktop in payload["desktops"]:
+            project_counts = desktop_project_counts.get(desktop["desktop_guid"], {})
+            if project_counts:
+                desktop["dominant_project_id"] = max(project_counts.items(), key=lambda item: item[1])[0]
+            desktop["summary"] = {
+                "window_count": len([w for w in payload["windows"] if w.get("desktop_guid") == desktop["desktop_guid"]]),
+                "project_count": len(project_counts),
+            }
+
         for terminal in terminals:
             cli_context = terminal.get("cli_context") or {}
+            project_root = infer_project_root_for_terminal(terminal)
             payload["terminals"].append(
                 {
-                    "window_hwnd": None,
+                    "window_hwnd": infer_window_hwnd_for_terminal(terminal, windows),
                     "terminal_pid": terminal.get("pid"),
                     "terminal_name": terminal.get("name"),
                     "terminal_cwd": cli_context.get("terminal_cwd"),
                     "active_worker": cli_context.get("active_worker"),
+                    "project_root": project_root,
                 }
             )
 

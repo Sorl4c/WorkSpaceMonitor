@@ -15,5 +15,8 @@ def test_capture_and_restore_plan(tmp_path):
     db = SQLitePersistence(str(tmp_path / "wm.db"))
     service = SnapshotService(db, fake_gather, app_version="test")
     result = service.capture_and_persist("manual")
+    detail = db.snapshot_detail(result["snapshot_id"])
     plan = service.build_restore_plan(result["snapshot_id"], fake_gather())
+    assert detail["windows"][0]["project_id"] is not None
+    assert detail["terminals"][0]["window_snapshot_id"] == detail["windows"][0]["id"]
     assert plan["summary"]["matched"] == 1

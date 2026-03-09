@@ -29,6 +29,9 @@ class SQLitePersistence:
         base = os.getenv("WORKSPACE_MONITOR_DATA_DIR")
         if base:
             return str(Path(base) / "workspace_monitor.db")
+        local_appdata = os.getenv("LOCALAPPDATA")
+        if local_appdata:
+            return str(Path(local_appdata) / "WorkspaceMonitor" / "workspace_monitor.db")
         home = Path.home() / ".workspace_monitor"
         return str(home / "workspace_monitor.db")
 
@@ -56,9 +59,30 @@ class SQLitePersistence:
                     inferred_name TEXT NOT NULL,
                     manual_name TEXT,
                     repository_url TEXT,
+                    github_provider TEXT,
+                    github_owner TEXT,
+                    github_repo TEXT,
+                    default_branch TEXT,
+                    repo_local_path_confirmed INTEGER NOT NULL DEFAULT 0,
+                    is_active INTEGER NOT NULL DEFAULT 1,
                     metadata_json TEXT,
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS project_terminal_profiles (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    project_id INTEGER NOT NULL,
+                    name TEXT NOT NULL,
+                    launch_command TEXT,
+                    cwd TEXT,
+                    shell TEXT,
+                    desktop_preference INTEGER,
+                    auto_restore INTEGER NOT NULL DEFAULT 1,
+                    sort_order INTEGER NOT NULL DEFAULT 0,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
                 );
 
                 CREATE TABLE IF NOT EXISTS workspaces (
@@ -159,6 +183,7 @@ class SQLitePersistence:
                 CREATE INDEX IF NOT EXISTS idx_snapshot_desktops_snapshot_id ON snapshot_desktops(snapshot_id);
                 CREATE INDEX IF NOT EXISTS idx_snapshot_windows_snapshot_id ON snapshot_windows(snapshot_id);
                 CREATE INDEX IF NOT EXISTS idx_snapshot_terminals_snapshot_id ON snapshot_terminals(snapshot_id);
+                CREATE INDEX IF NOT EXISTS idx_project_terminal_profiles_project_id ON project_terminal_profiles(project_id);
                 """
             )
 
