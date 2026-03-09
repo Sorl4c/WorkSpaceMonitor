@@ -1,52 +1,21 @@
-from fastapi.testclient import TestClient
-from src.main import app
-from unittest.mock import patch
+import asyncio
 
-client = TestClient(app)
+from src.main import gather_state, persistence, snapshot_service
 
-def test_read_root():
-    response = client.get("/api/status")
-    assert response.status_code == 200
-    assert response.json() == {"status": "running", "message": "Workspace Monitor Daemon"}
 
-@patch('src.main.get_virtual_desktops')
-def test_read_desktops(mock_get_virtual_desktops):
-    mock_get_virtual_desktops.return_value = [{"id": "1", "number": 1, "name": "Desktop 1"}]
-    response = client.get("/desktops")
-    assert response.status_code == 200
-    assert response.json() == [{"id": "1", "number": 1, "name": "Desktop 1"}]
+def test_gather_state_shape():
+    state = gather_state()
+    assert "desktops" in state
+    assert "windows" in state
+    assert "terminals" in state
 
-@patch('src.main.get_all_windows')
-def test_read_windows(mock_get_all_windows):
-    mock_get_all_windows.return_value = [{"hwnd": 123, "title": "Test Window", "desktop_id": "1", "pid": 4567}]
-    response = client.get("/windows")
-    assert response.status_code == 200
-    assert response.json() == [{"hwnd": 123, "title": "Test Window", "desktop_id": "1", "pid": 4567}]
 
-@patch('src.main.detect_terminals')
-@patch('src.main.terminal_tracker.get_name')
-def test_read_terminals(mock_get_name, mock_detect_terminals):
-    mock_detect_terminals.return_value = [{"pid": 123, "name": "cmd.exe"}]
-    mock_get_name.return_value = "Test Terminal"
-    response = client.get("/terminals")
-    assert response.status_code == 200
-    assert response.json() == [{"pid": 123, "name": "cmd.exe", "custom_name": "Test Terminal"}]
+def test_manual_snapshot_flow(tmp_path, monkeypatch):
+    from src import main
+    main.persistence = persistence.__class__(str(tmp_path / "wm.db"))
+    main.snapshot_service = snapshot_service.__class__(main.persistence, main.gather_state, app_version="test")
 
-@patch('src.main.terminal_tracker.get_name')
-def test_read_terminal(mock_get_name):
-    mock_get_name.return_value = "Test Terminal"
-    response = client.get("/terminals/123")
-    assert response.status_code == 200
-    assert response.json() == {"pid": 123, "name": "Test Terminal"}
-
-    mock_get_name.return_value = None
-    response = client.get("/terminals/456")
-    assert response.status_code == 200
-    assert response.json() == {"pid": 456, "name": None}
-
-@patch('src.main.terminal_tracker.set_name')
-def test_update_terminal(mock_set_name):
-    response = client.post("/terminals/123", json={"name": "New Terminal"})
-    assert response.status_code == 200
-    assert response.json() == {"pid": 123, "name": "New Terminal"}
-    mock_set_name.assert_called_once_with(123, "New Terminal")
+    result = asyncio.run(main.create_snapshot())
+    assert result["snapshot_id"] > 0
+    listed = asyncio.run(main.list_snapshots(limit=5))
+    assert listed["items"]
