@@ -22,24 +22,41 @@ class SnapshotService:
             return "terminal", "generic", "medium"
         if any(kw in title_l for kw in ["vscode", "visual studio code", "cursor"]):
             return "code", "editor", "high"
-        if any(kw in title_l for kw in ["chrome", "edge", "firefox"]):
+        if any(kw in title_l for kw in ["chrome", "edge", "firefox", "comet"]):
             return "web", "browsing", "medium"
         return "system", "noise", "low"
 
-    def capture_and_persist(self, capture_mode: str = "manual") -> dict:
+    def capture_and_persist(
+        self,
+        capture_mode: str = "manual",
+        scope: str = "full",
+        title: str | None = None,
+        note: str | None = None,
+        desktop_id: str | None = None,
+    ) -> dict:
         state = self.gather_state_fn()
         desktops = state.get("desktops", [])
         windows = state.get("windows", [])
         terminals = state.get("terminals", [])
+
+        if scope == "desktop" and desktop_id:
+            desktops = [d for d in desktops if d.get("id") == desktop_id]
+            windows = [w for w in windows if w.get("desktop_id") == desktop_id]
+            allowed_pids = {w.get("pid") for w in windows if w.get("pid") is not None}
+            terminals = [t for t in terminals if t.get("pid") in allowed_pids]
 
         projects = infer_project_candidates(terminals, windows)
         project_ids = {p["root_path"]: self.persistence.upsert_project(p["root_path"], p["inferred_name"]) for p in projects}
 
         captured_at = datetime.now(timezone.utc).isoformat()
         terminal_pid_lookup = {t.get("pid") for t in terminals if t.get("pid") is not None}
+        primary_desktop = desktops[0] if scope == "desktop" and desktops else None
 
         payload = {
             "snapshot": {
+                "scope": scope,
+                "title": title,
+                "note": note,
                 "capture_mode": capture_mode,
                 "captured_at": captured_at,
                 "app_version": self.app_version,
@@ -47,6 +64,8 @@ class SnapshotService:
                 "desktop_count": len(desktops),
                 "window_count": len(windows),
                 "terminal_count": len(terminals),
+                "captured_desktop_guid": primary_desktop.get("id") if primary_desktop else None,
+                "captured_desktop_number": primary_desktop.get("number") if primary_desktop else None,
                 "notes": {"focus_bug_risk": "Cross-desktop focus/taskbar flashing tracked during jump/focus sequence."},
             },
             "desktops": [
@@ -64,6 +83,7 @@ class SnapshotService:
         }
 
         desktop_project_counts: dict[str, dict[int, int]] = {}
+        inferred_project_counts: dict[int, int] = {}
         for window in windows:
             semantic_type, semantic_subtype, importance = self._classify(
                 window.get("title", ""),
@@ -72,6 +92,8 @@ class SnapshotService:
             )
             project_root = infer_project_root_for_window(window, terminals)
             project_id = project_ids.get(project_root) if project_root else None
+            if project_id:
+                inferred_project_counts[project_id] = inferred_project_counts.get(project_id, 0) + 1
             desktop_guid = window.get("desktop_id")
             if desktop_guid and project_id:
                 desktop_project_counts.setdefault(desktop_guid, {})
@@ -93,8 +115,12 @@ class SnapshotService:
                         "project_root": project_root,
                         "desktop_guid": desktop_guid,
                     },
+                    "window_rect": window.get("rect") or {},
                 }
             )
+
+        if inferred_project_counts:
+            payload["snapshot"]["inferred_project_id"] = max(inferred_project_counts.items(), key=lambda item: item[1])[0]
 
         for desktop in payload["desktops"]:
             project_counts = desktop_project_counts.get(desktop["desktop_guid"], {})
@@ -132,22 +158,52 @@ class SnapshotService:
         for window in detail["windows"]:
             title = (window.get("title") or "").strip().lower()
             process_name = (window.get("process_name") or "").lower()
+            hint = window.get("restore_hint_json") or ""
             if title and title in current_titles:
                 status = "matched"
-            elif process_name in {"code.exe", "cursor.exe", "explorer.exe", "windowsterminal.exe"}:
+            elif process_name in {"code.exe", "cursor.exe", "explorer.exe", "windowsterminal.exe", "cmd.exe", "powershell.exe"}:
                 status = "restorable"
+            elif hint:
+                status = "pending_manual"
             elif title:
                 status = "pending_manual"
             else:
                 status = "unknown"
-            items.append({
-                "window_snapshot_id": window.get("id"),
-                "title": window.get("title"),
-                "process_name": window.get("process_name"),
-                "status": status,
-            })
+            items.append(
+                {
+                    "window_snapshot_id": window.get("id"),
+                    "title": window.get("title"),
+                    "process_name": window.get("process_name"),
+                    "status": status,
+                }
+            )
 
         counts = {k: 0 for k in ["matched", "restorable", "pending_manual", "unknown"]}
         for item in items:
             counts[item["status"]] += 1
         return {"snapshot_id": snapshot_id, "summary": counts, "items": items}
+
+    def execute_restore(self, snapshot_id: int, current_state: dict) -> dict:
+        plan = self.build_restore_plan(snapshot_id, current_state)
+        reopened = 0
+        manual = 0
+        results = []
+        for item in plan["items"]:
+            status = item["status"]
+            if status == "restorable":
+                reopened += 1
+                results.append({**item, "result": "partial", "message": "Launch anchor identified; best-effort reopen required."})
+            elif status == "matched":
+                results.append({**item, "result": "success", "message": "Already open in current session."})
+            else:
+                manual += 1
+                results.append({**item, "result": "manual", "message": "Manual recovery required."})
+        return {
+            "snapshot_id": snapshot_id,
+            "summary": {
+                "matched": plan["summary"]["matched"],
+                "reopened": reopened,
+                "manual": manual,
+            },
+            "items": results,
+        }

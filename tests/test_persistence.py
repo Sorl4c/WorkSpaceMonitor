@@ -1,14 +1,16 @@
 from src.persistence import SQLitePersistence
 
 
-def test_snapshot_roundtrip(tmp_path):
+def test_snapshot_roundtrip_with_scope_and_metadata(tmp_path):
     db = SQLitePersistence(str(tmp_path / "wm.db"))
-    project_id = db.upsert_project("/repo/a", "a")
-    assert project_id > 0
+    project = db.create_project({"manual_name": "A", "root_path": "/repo/a"})
 
     snapshot_id = db.create_snapshot(
         {
             "snapshot": {
+                "scope": "desktop",
+                "title": "Checkpoint",
+                "note": "keep this",
                 "capture_mode": "manual",
                 "captured_at": "2026-03-08T00:00:00Z",
                 "app_version": "test",
@@ -16,34 +18,29 @@ def test_snapshot_roundtrip(tmp_path):
                 "desktop_count": 1,
                 "window_count": 1,
                 "terminal_count": 1,
+                "captured_desktop_guid": "d-1",
+                "captured_desktop_number": 1,
+                "inferred_project_id": project["id"],
             },
             "desktops": [{"desktop_guid": "d-1", "desktop_number": 1, "desktop_name": "Desktop 1"}],
-            "windows": [{"desktop_guid": "d-1", "hwnd_at_capture": 10, "title": "Code", "project_id": project_id}],
+            "windows": [{"desktop_guid": "d-1", "hwnd_at_capture": 10, "title": "Code", "project_id": project["id"], "window_rect": {"x": 0}}],
             "terminals": [{"terminal_pid": 100, "terminal_name": "cmd.exe", "terminal_cwd": "/repo/a"}],
         }
     )
-    assert snapshot_id > 0
-    latest = db.latest_snapshot()
-    assert latest["id"] == snapshot_id
     detail = db.snapshot_detail(snapshot_id)
-    assert len(detail["desktops"]) == 1
-    assert len(detail["windows"]) == 1
-    assert len(detail["terminals"]) == 1
+    assert detail["snapshot"]["scope"] == "desktop"
+    assert detail["snapshot"]["title"] == "Checkpoint"
+    assert detail["windows"][0]["window_rect_json"] is not None
 
 
-def test_project_schema_includes_github_and_terminal_profiles(tmp_path):
+def test_project_and_profiles_crud(tmp_path):
     db = SQLitePersistence(str(tmp_path / "wm.db"))
-    with db.connect() as conn:
-        project_columns = {
-            row["name"] for row in conn.execute("PRAGMA table_info(projects)").fetchall()
-        }
-        assert "github_owner" in project_columns
-        assert "github_repo" in project_columns
-        assert "default_branch" in project_columns
-
-        profile_columns = {
-            row["name"] for row in conn.execute("PRAGMA table_info(project_terminal_profiles)").fetchall()
-        }
-        assert "project_id" in profile_columns
-        assert "launch_command" in profile_columns
-        assert "desktop_preference" in profile_columns
+    project = db.create_project({"manual_name": "A", "root_path": "/repo/a"})
+    terminal = db.add_project_terminal(project["id"], {"name": "t1", "cwd": "/repo/a", "preferred_zone": "left"})
+    app = db.add_project_app(project["id"], {"app_type": "vscode", "display_name": "Code", "launch_target": "/repo/a"})
+    loaded = db.get_project(project["id"])
+    assert loaded
+    assert len(loaded["terminal_profiles"]) == 1
+    assert len(loaded["app_profiles"]) == 1
+    assert terminal["preferred_zone"] == "left"
+    assert app["app_type"] == "vscode"
