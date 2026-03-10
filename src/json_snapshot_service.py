@@ -6,7 +6,14 @@ from pathlib import Path
 from shutil import which
 from typing import Any, Callable
 
-from src.project_inference import infer_project_from_path, infer_project_root_for_terminal, infer_project_root_for_window
+from src.desktop import create_virtual_desktop
+from src.json_snapshot_inference import (
+    desktop_local_roots,
+    dominant_project_root,
+    editor_open_elsewhere,
+    infer_snapshot_terminal,
+    infer_snapshot_window,
+)
 
 
 class JsonSnapshotService:
@@ -23,54 +30,6 @@ class JsonSnapshotService:
     def _write(self, payload: dict[str, Any]) -> None:
         self.snapshot_path.write_text(json.dumps(payload, indent=2, ensure_ascii=True), encoding="utf-8")
 
-    def _is_system_path(self, path: str | None) -> bool:
-        if not path:
-            return True
-        lowered = path.strip().lower()
-        return lowered.startswith(("c:\\windows", "::{"))
-
-    def _desktop_local_roots(self, desktop_windows: list[dict[str, Any]], terminals: list[dict[str, Any]]) -> list[str]:
-        roots: list[str] = []
-        for window in desktop_windows:
-            for maybe_path in (window.get("explorer_path"),):
-                inferred = infer_project_from_path(maybe_path)
-                if inferred and not self._is_system_path(inferred[0]) and inferred[0] not in roots:
-                    roots.append(inferred[0])
-        for terminal in terminals:
-            root = infer_project_root_for_terminal(terminal)
-            if root and not self._is_system_path(root) and root not in roots:
-                roots.append(root)
-        return roots
-
-    def _normalize_terminal_cwd(
-        self,
-        process_name: str | None,
-        title: str | None,
-        terminal: dict[str, Any] | None,
-        fallback_root: str | None,
-    ) -> str | None:
-        cli_context = (terminal or {}).get("cli_context") or {}
-        active_worker = cli_context.get("active_worker") or {}
-        title_lower = (title or "").strip().lower()
-        process_lower = (process_name or "").lower()
-        generic_terminal_titles = {
-            "windows powershell",
-            "cmd.exe",
-            "símbolo del sistema",
-            "sÃ­mbolo del sistema",
-            "c:\\windows\\system32\\cmd.exe",
-        }
-
-        for candidate in (active_worker.get("cwd"), cli_context.get("terminal_cwd")):
-            if candidate and not self._is_system_path(candidate):
-                return candidate
-
-        terminal_cwd = cli_context.get("terminal_cwd") or active_worker.get("cwd")
-        if process_lower in {"windowsterminal.exe", "powershell.exe", "pwsh.exe", "cmd.exe"} and fallback_root:
-            if not terminal_cwd or self._is_system_path(terminal_cwd) or title_lower in generic_terminal_titles:
-                return fallback_root
-        return terminal_cwd
-
     def capture_desktop(self, desktop_id: str, title: str | None = None, note: str | None = None) -> dict[str, Any]:
         state = self.gather_state_fn()
         desktops = state.get("desktops", [])
@@ -85,23 +44,16 @@ class JsonSnapshotService:
         terminal_by_pid = {t.get("pid"): t for t in terminals if t.get("pid") is not None}
         desktop_terminals = [terminal_by_pid[w.get("pid")] for w in desktop_windows if w.get("pid") in terminal_by_pid]
         unique_terminals = {t["pid"]: t for t in desktop_terminals if t.get("pid") is not None}
-        desktop_local_roots = self._desktop_local_roots(desktop_windows, list(unique_terminals.values()))
-        fallback_root = desktop_local_roots[0] if len(desktop_local_roots) == 1 else None
+        local_roots = desktop_local_roots(desktop_windows, list(unique_terminals.values()))
+        fallback_root = local_roots[0] if len(local_roots) == 1 else None
 
         snapshot_windows = []
         inferred_project_roots: dict[str, int] = {}
         for window in desktop_windows:
             terminal = terminal_by_pid.get(window.get("pid"))
-            project_root = infer_project_root_for_window(window, list(unique_terminals.values()))
-            process_name = (window.get("process_name") or "").lower()
-            title = window.get("title") or ""
-            if (not project_root or self._is_system_path(project_root)) and process_name == "code.exe" and fallback_root:
-                if "visual studio code" in title.lower() or "vscode" in title.lower():
-                    project_root = fallback_root
-            terminal_cwd = self._normalize_terminal_cwd(window.get("process_name"), title, terminal, fallback_root)
-            if process_name in {"windowsterminal.exe", "powershell.exe", "pwsh.exe", "cmd.exe"} and fallback_root:
-                if not project_root or self._is_system_path(project_root):
-                    project_root = terminal_cwd if terminal_cwd and not self._is_system_path(terminal_cwd) else fallback_root
+            inferred = infer_snapshot_window(window, terminal, list(unique_terminals.values()), fallback_root)
+            project_root = inferred["project_root"]
+            terminal_cwd = inferred["terminal_cwd"]
             if project_root:
                 inferred_project_roots[project_root] = inferred_project_roots.get(project_root, 0) + 1
             snapshot_windows.append(
@@ -124,16 +76,13 @@ class JsonSnapshotService:
         for terminal in unique_terminals.values():
             cli_context = terminal.get("cli_context") or {}
             active_worker = cli_context.get("active_worker") or {}
-            terminal_cwd = self._normalize_terminal_cwd(terminal.get("name"), terminal.get("name"), terminal, fallback_root)
-            project_root = infer_project_root_for_terminal(terminal)
-            if (not project_root or self._is_system_path(project_root)) and terminal_cwd and not self._is_system_path(terminal_cwd):
-                project_root = terminal_cwd
+            inferred = infer_snapshot_terminal(terminal, fallback_root)
             snapshot_terminals.append(
                 {
                     "pid": terminal.get("pid"),
                     "name": terminal.get("name"),
-                    "terminal_cwd": terminal_cwd,
-                    "project_root": project_root,
+                    "terminal_cwd": inferred["terminal_cwd"],
+                    "project_root": inferred["project_root"],
                     "active_worker": {
                         "name": active_worker.get("name"),
                         "cwd": active_worker.get("cwd"),
@@ -143,12 +92,6 @@ class JsonSnapshotService:
                     else None,
                 }
             )
-
-        dominant_project_root = None
-        if inferred_project_roots:
-            dominant_project_root = max(inferred_project_roots.items(), key=lambda item: item[1])[0]
-        elif fallback_root:
-            dominant_project_root = fallback_root
 
         payload = {
             "version": 1,
@@ -161,7 +104,7 @@ class JsonSnapshotService:
                 "number": desktop.get("number"),
                 "name": desktop.get("name"),
             },
-            "dominant_project_root": dominant_project_root,
+            "dominant_project_root": dominant_project_root(inferred_project_roots, fallback_root),
             "window_count": len(snapshot_windows),
             "terminal_count": len(snapshot_terminals),
             "windows": snapshot_windows,
@@ -173,37 +116,128 @@ class JsonSnapshotService:
     def get_current_snapshot(self) -> dict[str, Any] | None:
         return self._read()
 
-    def build_restore_plan(self) -> dict[str, Any]:
+    def _desktop_lookup(self, state: dict[str, Any]) -> tuple[dict[str, dict[str, Any]], dict[int, dict[str, Any]]]:
+        desktops = state.get("desktops", [])
+        return (
+            {desktop.get("id"): desktop for desktop in desktops if desktop.get("id") is not None},
+            {desktop.get("number"): desktop for desktop in desktops if desktop.get("number") is not None},
+        )
+
+    def _resolve_target_for_plan(self, snapshot: dict[str, Any], state: dict[str, Any], target: dict[str, Any] | None = None) -> dict[str, Any]:
+        target = target or {"mode": "same"}
+        if target.get("resolved_desktop_number") is not None and target.get("resolved_desktop_id") is not None:
+            return {
+                "mode": target.get("mode") or "desktop",
+                "requested_desktop_number": target.get("requested_desktop_number"),
+                "resolved_desktop_number": target.get("resolved_desktop_number"),
+                "resolved_desktop_id": target.get("resolved_desktop_id"),
+                "created_new_desktop": bool(target.get("created_new_desktop")),
+                "will_create_new": False,
+            }
+        mode = target.get("mode") or "same"
+        _, by_number = self._desktop_lookup(state)
+        snapshot_desktop = snapshot.get("desktop") or {}
+        snapshot_number = snapshot_desktop.get("number")
+        snapshot_id = snapshot_desktop.get("id")
+
+        if mode == "same":
+            desktop = by_number.get(snapshot_number)
+            if desktop:
+                return {
+                    "mode": "same",
+                    "requested_desktop_number": snapshot_number,
+                    "resolved_desktop_number": desktop.get("number"),
+                    "resolved_desktop_id": desktop.get("id"),
+                    "created_new_desktop": False,
+                    "will_create_new": False,
+                }
+            return {
+                "mode": "same",
+                "requested_desktop_number": snapshot_number,
+                "resolved_desktop_number": snapshot_number,
+                "resolved_desktop_id": snapshot_id,
+                "created_new_desktop": False,
+                "will_create_new": False,
+            }
+
+        if mode == "desktop":
+            requested = target.get("desktop_number")
+            desktop = by_number.get(requested)
+            if not desktop:
+                raise ValueError(f"Target desktop not found: {requested}")
+            return {
+                "mode": "desktop",
+                "requested_desktop_number": requested,
+                "resolved_desktop_number": desktop.get("number"),
+                "resolved_desktop_id": desktop.get("id"),
+                "created_new_desktop": False,
+                "will_create_new": False,
+            }
+
+        if mode == "new":
+            return {
+                "mode": "new",
+                "requested_desktop_number": None,
+                "resolved_desktop_number": None,
+                "resolved_desktop_id": None,
+                "created_new_desktop": False,
+                "will_create_new": True,
+            }
+
+        raise ValueError(f"Unsupported target mode: {mode}")
+
+    def _create_target_desktop(self) -> dict[str, Any]:
+        desktop = create_virtual_desktop()
+        return {
+            "mode": "new",
+            "requested_desktop_number": None,
+            "resolved_desktop_number": desktop.get("number"),
+            "resolved_desktop_id": desktop.get("id"),
+            "created_new_desktop": True,
+            "will_create_new": False,
+        }
+
+    def build_restore_plan(self, target: dict[str, Any] | None = None) -> dict[str, Any]:
         snapshot = self._read()
         if not snapshot:
             raise ValueError("No current desktop snapshot found")
 
         state = self.gather_state_fn()
-        snapshot_desktop_id = (snapshot.get("desktop") or {}).get("id")
-        current_windows = [w for w in state.get("windows", []) if w.get("desktop_id") == snapshot_desktop_id]
-        current_windows_elsewhere = [w for w in state.get("windows", []) if w.get("desktop_id") != snapshot_desktop_id]
+        resolved_target = self._resolve_target_for_plan(snapshot, state, target)
+        target_desktop_id = resolved_target.get("resolved_desktop_id")
+        if resolved_target.get("mode") == "new":
+            current_windows = []
+            current_windows_elsewhere = list(state.get("windows", []))
+        else:
+            current_windows = [w for w in state.get("windows", []) if w.get("desktop_id") == target_desktop_id]
+            current_windows_elsewhere = [w for w in state.get("windows", []) if w.get("desktop_id") != target_desktop_id]
+
         current_titles = {(w.get("title") or "").strip().lower() for w in current_windows}
         current_explorer_paths = {
             (w.get("explorer_path") or "").strip().lower()
             for w in current_windows
             if (w.get("process_name") or "").lower() == "explorer.exe"
         }
-        current_editor_projects_elsewhere = {
-            infer_project_root_for_window(window, state.get("terminals", []))
-            for window in current_windows_elsewhere
-            if (window.get("process_name") or "").lower() in {"code.exe", "cursor.exe"}
-        }
-        current_editor_projects_elsewhere.discard(None)
-        current_editor_titles_elsewhere = {
-            (window.get("title") or "").strip().lower()
-            for window in current_windows_elsewhere
-            if (window.get("process_name") or "").lower() in {"code.exe", "cursor.exe"}
-        }
         current_terminal_cwds = {
             ((t.get("cli_context") or {}).get("terminal_cwd") or "").strip().lower()
             for t in state.get("terminals", [])
             if any(w.get("pid") == t.get("pid") for w in current_windows)
         }
+        current_terminal_cwds_elsewhere = {
+            ((t.get("cli_context") or {}).get("terminal_cwd") or "").strip().lower()
+            for t in state.get("terminals", [])
+            if any(w.get("pid") == t.get("pid") for w in current_windows_elsewhere)
+        }
+        desktop_number_by_id, _ = self._desktop_lookup(state)
+
+        def desktop_numbers_for(predicate):
+            return sorted(
+                {
+                    desktop_number_by_id.get(window.get("desktop_id"), {}).get("number")
+                    for window in current_windows_elsewhere
+                    if predicate(window) and desktop_number_by_id.get(window.get("desktop_id"), {}).get("number") is not None
+                }
+            )
 
         items: list[dict[str, Any]] = []
         window_terminal_action_keys: set[tuple[str, str]] = set()
@@ -211,39 +245,66 @@ class JsonSnapshotService:
             title = (window.get("title") or "").strip().lower()
             process_name = (window.get("process_name") or "").lower()
             project_root = window.get("project_root")
-            project_name = Path(project_root).name.lower() if project_root else None
             terminal_cwd = (window.get("terminal_cwd") or "").strip().lower()
             explorer_path = (window.get("explorer_path") or "").strip().lower()
             action = None
 
             if process_name == "explorer.exe" and explorer_path and explorer_path in current_explorer_paths:
                 status = "matched"
+                existing_desktop_numbers = [resolved_target.get("resolved_desktop_number")] if resolved_target.get("resolved_desktop_number") else []
+            elif process_name == "explorer.exe" and explorer_path and desktop_numbers_for(
+                lambda other: (other.get("process_name") or "").lower() == "explorer.exe"
+                and (other.get("explorer_path") or "").strip().lower() == explorer_path
+            ):
+                status = "already_open_elsewhere"
+                existing_desktop_numbers = desktop_numbers_for(
+                    lambda other: (other.get("process_name") or "").lower() == "explorer.exe"
+                    and (other.get("explorer_path") or "").strip().lower() == explorer_path
+                )
+                action = {"type": "focus_existing_explorer", "target": explorer_path}
             elif process_name == "explorer.exe" and explorer_path:
                 status = "restorable"
                 action = {"type": "explorer", "target": explorer_path}
+                existing_desktop_numbers = []
             elif title and title in current_titles:
                 status = "matched"
-            elif process_name in {"code.exe", "cursor.exe"} and project_root and (
-                project_root in current_editor_projects_elsewhere
-                or any(project_name and project_name in editor_title for editor_title in current_editor_titles_elsewhere)
-            ):
+                existing_desktop_numbers = [resolved_target.get("resolved_desktop_number")] if resolved_target.get("resolved_desktop_number") else []
+            elif process_name in {"code.exe", "cursor.exe"} and editor_open_elsewhere(project_root, current_windows_elsewhere, state.get("terminals", [])):
                 status = "already_open_elsewhere"
                 action = {"type": "focus_existing_editor", "target": project_root}
+                existing_desktop_numbers = desktop_numbers_for(
+                    lambda other: (other.get("process_name") or "").lower() in {"code.exe", "cursor.exe"}
+                )
             elif process_name in {"code.exe", "cursor.exe"} and project_root:
                 status = "restorable"
                 action = {"type": "vscode", "target": project_root}
+                existing_desktop_numbers = []
             elif process_name in {"windowsterminal.exe", "powershell.exe", "pwsh.exe", "cmd.exe"} and terminal_cwd:
-                status = "restorable"
-                action = {"type": "terminal", "target": terminal_cwd}
-                window_terminal_action_keys.add(("terminal", terminal_cwd))
+                if terminal_cwd in current_terminal_cwds:
+                    status = "matched"
+                    existing_desktop_numbers = [resolved_target.get("resolved_desktop_number")] if resolved_target.get("resolved_desktop_number") else []
+                elif terminal_cwd in current_terminal_cwds_elsewhere:
+                    status = "already_open_elsewhere"
+                    action = {"type": "focus_existing_terminal", "target": terminal_cwd}
+                    existing_desktop_numbers = desktop_numbers_for(
+                        lambda other: ((other.get("process_name") or "").lower() in {"windowsterminal.exe", "powershell.exe", "pwsh.exe", "cmd.exe"})
+                    )
+                else:
+                    status = "restorable"
+                    action = {"type": "terminal", "target": terminal_cwd}
+                    existing_desktop_numbers = []
+                    window_terminal_action_keys.add(("terminal", terminal_cwd))
             elif terminal_cwd and terminal_cwd not in current_terminal_cwds:
                 status = "restorable"
                 action = {"type": "terminal", "target": terminal_cwd}
                 window_terminal_action_keys.add(("terminal", terminal_cwd))
+                existing_desktop_numbers = []
             elif title:
                 status = "pending_manual"
+                existing_desktop_numbers = []
             else:
                 status = "unknown"
+                existing_desktop_numbers = []
 
             items.append(
                 {
@@ -252,29 +313,56 @@ class JsonSnapshotService:
                     "process_name": window.get("process_name"),
                     "status": status,
                     "action": action,
+                    "existing_desktop_numbers": existing_desktop_numbers,
                 }
             )
 
         for terminal in snapshot.get("terminals", []):
             cwd = (terminal.get("terminal_cwd") or "").strip().lower()
             if not cwd:
-                items.append({"kind": "terminal", "title": terminal.get("name"), "process_name": terminal.get("name"), "status": "pending_manual", "action": None})
+                items.append(
+                    {
+                        "kind": "terminal",
+                        "title": terminal.get("name"),
+                        "process_name": terminal.get("name"),
+                        "status": "pending_manual",
+                        "action": None,
+                        "existing_desktop_numbers": [],
+                    }
+                )
                 continue
             if cwd in current_terminal_cwds:
                 status = "matched"
                 action = None
+                existing_desktop_numbers = [resolved_target.get("resolved_desktop_number")] if resolved_target.get("resolved_desktop_number") else []
             elif ("terminal", cwd) in window_terminal_action_keys:
                 continue
+            elif cwd in current_terminal_cwds_elsewhere:
+                status = "already_open_elsewhere"
+                action = {"type": "focus_existing_terminal", "target": terminal.get("terminal_cwd")}
+                existing_desktop_numbers = desktop_numbers_for(
+                    lambda other: ((other.get("process_name") or "").lower() in {"windowsterminal.exe", "powershell.exe", "pwsh.exe", "cmd.exe"})
+                )
             else:
                 status = "restorable"
                 action = {"type": "terminal", "target": terminal.get("terminal_cwd")}
-            items.append({"kind": "terminal", "title": terminal.get("name"), "process_name": terminal.get("name"), "status": status, "action": action})
+                existing_desktop_numbers = []
+            items.append(
+                {
+                    "kind": "terminal",
+                    "title": terminal.get("name"),
+                    "process_name": terminal.get("name"),
+                    "status": status,
+                    "action": action,
+                    "existing_desktop_numbers": existing_desktop_numbers,
+                }
+            )
 
         summary = {k: 0 for k in ["matched", "restorable", "pending_manual", "unknown", "already_open_elsewhere"]}
         for item in items:
             summary[item["status"]] += 1
 
-        return {"snapshot": snapshot, "summary": summary, "items": items}
+        return {"snapshot": snapshot, "target": resolved_target, "summary": summary, "items": items}
 
     def _go_to_desktop(self, desktop_number: int | None) -> dict[str, Any]:
         if desktop_number is None:
@@ -325,10 +413,20 @@ class JsonSnapshotService:
         except Exception as exc:
             return {"status": "failed", "message": str(exc)}
 
-    def restore_current_snapshot(self) -> dict[str, Any]:
-        plan = self.build_restore_plan()
+    def restore_current_snapshot(self, target: dict[str, Any] | None = None) -> dict[str, Any]:
+        snapshot = self._read()
+        if not snapshot:
+            raise ValueError("No current desktop snapshot found")
+
+        if (target or {}).get("mode") == "new":
+            resolved_target = self._create_target_desktop()
+            plan = self.build_restore_plan(resolved_target)
+        else:
+            plan = self.build_restore_plan(target)
+            resolved_target = plan["target"]
+
         snapshot = plan["snapshot"]
-        desktop_result = self._go_to_desktop((snapshot.get("desktop") or {}).get("number"))
+        desktop_result = self._go_to_desktop(resolved_target.get("resolved_desktop_number"))
 
         results = []
         executed_actions: set[tuple[str, str]] = set()
@@ -365,4 +463,4 @@ class JsonSnapshotService:
                 result = "manual"
             results.append({**item, "result": result, "launch": launch})
 
-        return {"snapshot": snapshot, "desktop": desktop_result, "items": results}
+        return {"snapshot": snapshot, "target": resolved_target, "desktop": desktop_result, "items": results}

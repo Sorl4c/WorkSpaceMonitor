@@ -67,6 +67,13 @@ snapshot_service = SnapshotService(persistence=persistence, gather_state_fn=gath
 json_snapshot_service = JsonSnapshotService(gather_state_fn=gather_state)
 
 
+def _json_snapshot_http_error(exc: ValueError) -> HTTPException:
+    detail = str(exc)
+    if detail == "No current desktop snapshot found":
+        return HTTPException(status_code=404, detail=detail)
+    return HTTPException(status_code=400, detail=detail)
+
+
 @app.get("/api/snapshot")
 async def get_snapshot():
     return await asyncio.to_thread(gather_state)
@@ -135,19 +142,21 @@ async def create_json_desktop_snapshot(desktop_id: str, payload: dict[str, Any] 
 
 
 @app.post("/api/json-snapshot/restore")
-async def restore_json_snapshot():
+async def restore_json_snapshot(payload: dict[str, Any] | None = None):
+    payload = payload or {}
     try:
-        return await asyncio.to_thread(json_snapshot_service.restore_current_snapshot)
+        return await asyncio.to_thread(json_snapshot_service.restore_current_snapshot, payload.get("target"))
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise _json_snapshot_http_error(exc) from exc
 
 
 @app.post("/api/json-snapshot/restore-plan")
-async def restore_json_snapshot_plan():
+async def restore_json_snapshot_plan(payload: dict[str, Any] | None = None):
+    payload = payload or {}
     try:
-        return await asyncio.to_thread(json_snapshot_service.build_restore_plan)
+        return await asyncio.to_thread(json_snapshot_service.build_restore_plan, payload.get("target"))
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise _json_snapshot_http_error(exc) from exc
 
 
 @app.get("/api/snapshots")
@@ -341,6 +350,11 @@ def read_root():
 @app.get("/studio")
 def studio():
     return FileResponse("static/studio.html")
+
+
+@app.get("/restore")
+def restore():
+    return FileResponse("static/restore/index.html")
 
 
 @app.get("/events")

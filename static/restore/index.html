@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Workspace Restore</title>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+  <script src="/js/store/restore-store.js"></script>
+  <style>
+    body { font-family: Inter, Arial, sans-serif; background: #0b0b0b; color: #eee; margin: 0; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 20px; }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .card { border: 1px solid #242424; background: #131313; border-radius: 10px; padding: 14px; margin-top: 14px; }
+    .grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 14px; }
+    .muted { color: #888; font-size: 12px; }
+    .action { background: #1e1e1e; color: #eee; border: 1px solid #333; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+    .action:hover { background: #292929; }
+    .summary { display:flex; gap:8px; flex-wrap:wrap; }
+    .pill { border:1px solid #303030; border-radius:999px; padding:4px 10px; font-size:12px; }
+    select { background: #101010; border: 1px solid #333; color: #eee; border-radius: 6px; padding: 8px; }
+    .section-title { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #666; margin-bottom: 8px; }
+    .item { padding: 8px 10px; border: 1px solid #262626; border-radius: 8px; margin-bottom: 8px; }
+    .status-matched { color: #22c55e; }
+    .status-restorable { color: #60a5fa; }
+    .status-already { color: #f59e0b; }
+    .status-manual { color: #a3a3a3; }
+    a.link { color: #9dc1ff; text-decoration: none; }
+  </style>
+</head>
+<body x-data x-init="$store.wmRestore.init()">
+  <div class="wrap">
+    <div class="row" style="justify-content: space-between; align-items: center;">
+      <h2 style="margin: 0;">Restore</h2>
+      <a class="link" href="/">Back to Live</a>
+    </div>
+
+    <div class="card" x-show="$store.wmRestore.snapshot">
+      <div class="section-title">Current Snapshot</div>
+      <div style="font-size: 1rem; font-weight: 600;" x-text="$store.wmRestore.snapshot?.title || 'Untitled snapshot'"></div>
+      <div class="muted" x-text="$store.wmRestore.snapshot?.note || 'No note'"></div>
+      <div class="summary" style="margin-top: 10px;">
+        <div class="pill" x-text="'Desktop ' + ($store.wmRestore.snapshot?.desktop?.number ?? '-')"></div>
+        <div class="pill" x-text="($store.wmRestore.snapshot?.window_count || 0) + ' windows'"></div>
+        <div class="pill" x-text="($store.wmRestore.snapshot?.terminal_count || 0) + ' terminals'"></div>
+        <div class="pill" x-text="$store.wmRestore.snapshot?.dominant_project_root || 'No dominant project'"></div>
+      </div>
+    </div>
+
+    <div class="card" x-show="!$store.wmRestore.snapshot && !$store.wmRestore.loading">
+      <div>No current desktop snapshot available.</div>
+    </div>
+
+    <div class="grid" x-show="$store.wmRestore.snapshot">
+      <div class="card">
+        <div class="section-title">Restore Plan</div>
+        <div class="summary">
+          <div class="pill">matched: <span x-text="$store.wmRestore.restorePlan?.summary?.matched || 0"></span></div>
+          <div class="pill">restorable: <span x-text="$store.wmRestore.restorePlan?.summary?.restorable || 0"></span></div>
+          <div class="pill">already elsewhere: <span x-text="$store.wmRestore.restorePlan?.summary?.already_open_elsewhere || 0"></span></div>
+          <div class="pill">manual: <span x-text="$store.wmRestore.restorePlan?.summary?.pending_manual || 0"></span></div>
+        </div>
+        <div style="margin-top: 12px;">
+          <template x-for="item in $store.wmRestore.restorePlan?.items || []" :key="item.kind + '-' + item.title">
+            <div class="item">
+              <div class="row" style="justify-content: space-between;">
+                <div style="font-weight: 600;" x-text="item.title"></div>
+                <div
+                  :class="{
+                    'status-matched': item.status === 'matched',
+                    'status-restorable': item.status === 'restorable',
+                    'status-already': item.status === 'already_open_elsewhere',
+                    'status-manual': item.status === 'pending_manual' || item.status === 'unknown'
+                  }"
+                  x-text="item.status"
+                ></div>
+              </div>
+              <div class="muted" x-text="item.process_name"></div>
+              <div
+                class="muted"
+                x-show="!!item.action"
+                x-text="item.action ? ('Action: ' + item.action.type + ' -> ' + item.action.target) : ''"
+              ></div>
+              <div
+                class="muted"
+                x-show="Array.isArray(item.existing_desktop_numbers) && item.existing_desktop_numbers.length > 0"
+                x-text="Array.isArray(item.existing_desktop_numbers) ? ('Detected on desktop(s): ' + item.existing_desktop_numbers.join(', ')) : ''"
+              ></div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Target</div>
+        <label class="muted">Mode</label>
+        <select x-model="$store.wmRestore.target.mode" @change="$store.wmRestore.refreshPlan()">
+          <option value="same">same desktop</option>
+          <option value="desktop">existing desktop</option>
+          <option value="new">new desktop</option>
+        </select>
+        <div x-show="$store.wmRestore.target.mode === 'desktop'" style="margin-top: 12px;">
+          <label class="muted">Desktop</label>
+          <select x-model.number="$store.wmRestore.target.desktop_number" @change="$store.wmRestore.refreshPlan()">
+            <template x-for="desktop in $store.wmRestore.desktops" :key="desktop.id">
+              <option :value="desktop.number" x-text="'Desktop ' + desktop.number"></option>
+            </template>
+          </select>
+        </div>
+        <div class="muted" style="margin-top: 10px;" x-show="$store.wmRestore.restorePlan?.target">
+          <span x-text="'Resolved target: ' + ($store.wmRestore.restorePlan?.target?.resolved_desktop_number ?? 'new desktop')"></span>
+        </div>
+        <div class="row" style="margin-top: 16px;">
+          <button class="action" @click="$store.wmRestore.refreshPlan()" :disabled="$store.wmRestore.loadingPlan">Refresh Plan</button>
+          <button class="action" @click="$store.wmRestore.restore()" :disabled="$store.wmRestore.restoring">Restore to target</button>
+        </div>
+        <div class="card" x-show="$store.wmRestore.restoreResult" style="margin-top: 14px;">
+          <div class="section-title">Last Result</div>
+          <div class="muted" x-text="$store.wmRestore.restoreResult?.desktop?.message || ''"></div>
+          <template x-for="item in $store.wmRestore.restoreResult?.items || []" :key="item.kind + '-result-' + item.title">
+            <div class="muted" x-text="item.result + ' - ' + item.title"></div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
