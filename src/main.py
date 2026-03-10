@@ -48,6 +48,7 @@ from src.jump import focus_window, jump_to_window
 from src.launch_service import LaunchService
 from src.persistence import SQLitePersistence
 from src.snapshot_service import SnapshotService
+from src.singleton_tools import SingletonToolsService
 from src.terminal import detect_terminals
 from src.window import get_all_windows
 
@@ -55,6 +56,7 @@ APP_VERSION = "0.2.0"
 app = FastAPI(title="Workspace Monitor")
 persistence = SQLitePersistence()
 launch_service = LaunchService(persistence)
+singleton_tools_service = SingletonToolsService()
 
 
 def gather_state() -> dict[str, Any]:
@@ -68,6 +70,12 @@ json_snapshot_service = JsonSnapshotService(gather_state_fn=gather_state)
 @app.get("/api/snapshot")
 async def get_snapshot():
     return await asyncio.to_thread(gather_state)
+
+
+@app.get("/api/singleton-tools")
+async def get_singleton_tools():
+    state = await asyncio.to_thread(gather_state)
+    return await asyncio.to_thread(singleton_tools_service.detect, state)
 
 
 @app.post("/api/snapshots")

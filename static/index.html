@@ -82,6 +82,7 @@
     menuY: 0,
     selectedWin: null,
     showFavorites: false,
+    showTools: false,
     openMenu(event, win) {
         this.menuOpen = true;
         this.menuX = event.clientX;
@@ -115,6 +116,10 @@
                 <button @click="showFavorites = true" class="view-btn" style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-base);">
                     <span>★</span>
                     Favoritos
+                </button>
+                <button @click="showTools = true" class="view-btn" style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-base);">
+                    <span>Tools</span>
+                    <span style="color: #888;" x-text="'· ' + $store.wm.singletonToolsOnCount + ' on'"></span>
                 </button>
                 <button @click="$store.wm.saveSnapshot()" class="view-btn" style="display: flex; align-items: center; gap: 0.5rem; border: 1px solid var(--border-base);" :disabled="$store.wm.savingSnapshot">
                     <span x-show="$store.wm.savingSnapshot">Saving...</span>
@@ -379,6 +384,52 @@
                     <div class="dot-marker" style="background: #eab308; margin-top: 0;"></div>
                     <span x-text="fav.title" style="flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></span>
                     <button @click.stop="$store.wm.toggleFavorite(fav)" style="background: none; border: none; cursor: pointer; color: #ef4444; margin-left: 0.5rem;">×</button>
+                </div>
+            </template>
+        </div>
+    </div>
+    <div x-show="showTools"
+         x-transition:enter="slide-enter-active"
+         x-transition:enter-start="slide-enter-from"
+         x-transition:enter-end="slide-enter-to"
+         x-transition:leave="slide-leave-active"
+         x-transition:leave-start="slide-leave-from"
+         x-transition:leave-end="slide-leave-to"
+         x-cloak
+         style="position: fixed; right: 0; top: 0; bottom: 0; width: 340px; background: var(--bg-sidebar); border-left: 1px solid var(--border-base); z-index: 1000; display: flex; flex-direction: column; box-shadow: -5px 0 15px rgba(0,0,0,0.5);">
+        <div class="sidebar-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Tools</span>
+            <button @click="showTools = false" style="background: none; border: none; color: #aaa; cursor: pointer; font-size: 1rem;">×</button>
+        </div>
+        <div style="padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.6rem;">
+            <div style="font-size: 0.72rem; color: #666; text-transform: uppercase; letter-spacing: .08em;">Singleton tools · deterministic detection</div>
+            <template x-if="$store.wm.loadingSingletonTools">
+                <div style="color:#666; font-size:.8rem;">Loading tools...</div>
+            </template>
+            <template x-if="!$store.wm.loadingSingletonTools && $store.wm.singletonTools.length === 0">
+                <div style="color:#666; font-size:.8rem;">No tool status available.</div>
+            </template>
+            <template x-for="tool in $store.wm.singletonTools" :key="tool.id">
+                <div style="padding: .8rem; background: rgba(255,255,255,0.03); border-radius: 6px; border: 1px solid var(--border-base); display: flex; flex-direction: column; gap: .35rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:.75rem;">
+                        <span style="font-weight:600; color:#eee;" x-text="tool.label"></span>
+                        <span style="font-size:.72rem; text-transform:uppercase; letter-spacing:.08em;"
+                              :style="tool.status === 'on' ? 'color:#22c55e;' : 'color:#666;'"
+                              x-text="tool.status"></span>
+                    </div>
+                    <div style="font-size:.76rem; color:#888;">
+                        <template x-if="tool.status === 'off'">
+                            <span>Not running</span>
+                        </template>
+                        <template x-if="tool.status === 'on'">
+                            <span>
+                                <span x-show="tool.desktop_numbers?.length > 0" x-text="'Desktop ' + tool.desktop_numbers.join(', ')"></span>
+                                <span x-show="tool.desktop_numbers?.length > 0 && tool.desktop_unknown"> · </span>
+                                <span x-show="tool.desktop_unknown">Desktop unknown</span>
+                                <span x-show="tool.window_count > 1" x-text="' · ' + tool.window_count + ' windows'"></span>
+                            </span>
+                        </template>
+                    </div>
                 </div>
             </template>
         </div>

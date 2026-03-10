@@ -14,6 +14,8 @@ document.addEventListener('alpine:init', () => {
         jsonSnapshotTitle: '',
         jsonSnapshotNote: '',
         restoringJsonSnapshot: false,
+        singletonTools: [],
+        loadingSingletonTools: false,
         
         // Datos brutos
         raw: { desktops: [], windows: [], terminals: [] },
@@ -42,6 +44,7 @@ document.addEventListener('alpine:init', () => {
 
                 const data = await response.json();
                 this.applyIncomingState(data);
+                await this.loadSingletonTools();
                 this.online = true;
             } catch (e) {
                 const isOffline = e instanceof TypeError;
@@ -51,6 +54,7 @@ document.addEventListener('alpine:init', () => {
                     console.error('WM Store: Refresh Error', e);
                 }
                 this.online = false;
+                this.singletonTools = [];
             }
         },
 
@@ -212,6 +216,7 @@ document.addEventListener('alpine:init', () => {
         get activeDesktop() { return this.processed.desktops.find(d => d.id === this.activeDesktopId); },
         get activeBuckets() { return this.activeDesktop?.buckets || { terminal: [], code: { files: [], tools: [] }, web: { apps: [], browsing: [] }, files: [], comms: [], system: [], noise: [] }; },
         get allWindowsByCategory() { return this.processed.byCategory; },
+        get singletonToolsOnCount() { return this.singletonTools.filter(tool => tool.status === 'on').length; },
 
         setActiveDesktop(id) {
             this.activeDesktopId = id;
@@ -345,6 +350,21 @@ document.addEventListener('alpine:init', () => {
                 this.latestSnapshot = this.recentSnapshots[0] || null;
             } catch (e) {
                 console.error('Snapshot List Error:', e);
+            }
+        },
+
+        async loadSingletonTools() {
+            this.loadingSingletonTools = true;
+            try {
+                const response = await fetch('/api/singleton-tools', { cache: 'no-store' });
+                if (!response.ok) throw new Error('Failed to load singleton tools');
+                const data = await response.json();
+                this.singletonTools = data.items || [];
+            } catch (e) {
+                console.error('Singleton Tools Error:', e);
+                this.singletonTools = [];
+            } finally {
+                this.loadingSingletonTools = false;
             }
         },
         async jumpToWindow(hwnd) {

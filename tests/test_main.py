@@ -56,3 +56,12 @@ def test_json_snapshot_api_flow(tmp_path):
 
     loaded = asyncio.run(main.get_json_snapshot())
     assert loaded["title"] == "Desk 5"
+
+
+def test_singleton_tools_api_flow():
+    from src import main
+
+    main.singleton_tools_service = main.singleton_tools_service.__class__()
+    result = asyncio.run(main.get_singleton_tools())
+    assert "items" in result
+    assert isinstance(result["items"], list)

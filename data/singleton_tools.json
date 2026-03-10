@@ -1,0 +1,46 @@
+{
+  "tools": [
+    {
+      "id": "vmware",
+      "label": "VMware",
+      "match": {
+        "process_names": ["vmware.exe"],
+        "title_contains": ["vmware", "workstation"]
+      }
+    },
+    {
+      "id": "xampp",
+      "label": "XAMPP",
+      "match": {
+        "process_names": ["xampp-control.exe"],
+        "title_contains": ["xampp control panel", "xampp"]
+      }
+    },
+    {
+      "id": "discord",
+      "label": "Discord",
+      "match": {
+        "process_names": ["discord.exe"],
+        "title_contains": ["discord"],
+        "detect_process_only": true
+      }
+    },
+    {
+      "id": "whatsapp",
+      "label": "WhatsApp",
+      "match": {
+        "process_names": ["whatsapp.exe", "whatsapp.root.exe"],
+        "title_contains": ["whatsapp"],
+        "detect_process_only": true
+      }
+    },
+    {
+      "id": "dbeaver",
+      "label": "DBeaver",
+      "match": {
+        "process_names": ["dbeaver.exe", "dbeaver-ce.exe"],
+        "title_contains": ["dbeaver"]
+      }
+    }
+  ]
+}
