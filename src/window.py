@@ -14,6 +14,13 @@ try:
 except Exception:  # pragma: no cover - windows only
     AppView = None
 
+try:
+    import win32com.client
+except Exception:  # pragma: no cover - windows only
+    win32com = None
+else:
+    win32com = win32com.client
+
 
 def clean_terminal_title(title: str) -> str:
     ready_match = re.search(r'◇\s+Ready\s*\((.*?)\)', title)
@@ -28,11 +35,31 @@ def clean_terminal_title(title: str) -> str:
     return title
 
 
+def _explorer_window_lookup() -> dict[int, dict]:
+    if win32com is None:
+        return {}
+    lookup: dict[int, dict] = {}
+    try:
+        shell = win32com.Dispatch("Shell.Application")
+        for window in shell.Windows():
+            try:
+                lookup[int(window.HWND)] = {
+                    "explorer_path": window.Document.Folder.Self.Path,
+                    "explorer_name": window.LocationName,
+                }
+            except Exception:
+                continue
+    except Exception:
+        return {}
+    return lookup
+
+
 def get_all_windows() -> list[dict]:
     if win32gui is None or win32process is None:
         return []
 
     windows = []
+    explorer_lookup = _explorer_window_lookup()
 
     def enum_handler(hwnd, _):
         if not win32gui.IsWindowVisible(hwnd):
@@ -64,7 +91,7 @@ def get_all_windows() -> list[dict]:
         except Exception:
             rect = None
 
-        windows.append({
+        window_data = {
             "hwnd": hwnd,
             "title": title,
             "clean_name": clean_name,
@@ -72,7 +99,10 @@ def get_all_windows() -> list[dict]:
             "pid": pid,
             "process_name": process_name,
             "rect": rect,
-        })
+        }
+        if hwnd in explorer_lookup:
+            window_data.update(explorer_lookup[hwnd])
+        windows.append(window_data)
 
     win32gui.EnumWindows(enum_handler, None)
     return windows

@@ -43,6 +43,7 @@ except Exception:  # pragma: no cover
             self.path = path
 
 from src.desktop import get_virtual_desktops
+from src.json_snapshot_service import JsonSnapshotService
 from src.jump import focus_window, jump_to_window
 from src.launch_service import LaunchService
 from src.persistence import SQLitePersistence
@@ -61,6 +62,7 @@ def gather_state() -> dict[str, Any]:
 
 
 snapshot_service = SnapshotService(persistence=persistence, gather_state_fn=gather_state, app_version=APP_VERSION)
+json_snapshot_service = JsonSnapshotService(gather_state_fn=gather_state)
 
 
 @app.get("/api/snapshot")
@@ -100,6 +102,44 @@ async def latest_snapshot():
     if not data:
         raise HTTPException(status_code=404, detail="No snapshots found")
     return data
+
+
+@app.get("/api/json-snapshot")
+async def get_json_snapshot():
+    data = await asyncio.to_thread(json_snapshot_service.get_current_snapshot)
+    if not data:
+        raise HTTPException(status_code=404, detail="No current desktop snapshot found")
+    return data
+
+
+@app.post("/api/json-snapshot/desktop/{desktop_id}")
+async def create_json_desktop_snapshot(desktop_id: str, payload: dict[str, Any] | None = None):
+    payload = payload or {}
+    try:
+        return await asyncio.to_thread(
+            json_snapshot_service.capture_desktop,
+            desktop_id,
+            payload.get("title"),
+            payload.get("note"),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/api/json-snapshot/restore")
+async def restore_json_snapshot():
+    try:
+        return await asyncio.to_thread(json_snapshot_service.restore_current_snapshot)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/api/json-snapshot/restore-plan")
+async def restore_json_snapshot_plan():
+    try:
+        return await asyncio.to_thread(json_snapshot_service.build_restore_plan)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
 @app.get("/api/snapshots")

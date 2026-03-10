@@ -9,6 +9,11 @@ document.addEventListener('alpine:init', () => {
         recentSnapshots: [],
         latestSnapshot: null,
         savingSnapshot: false,
+        jsonSnapshot: null,
+        jsonRestorePlan: null,
+        jsonSnapshotTitle: '',
+        jsonSnapshotNote: '',
+        restoringJsonSnapshot: false,
         
         // Datos brutos
         raw: { desktops: [], windows: [], terminals: [] },
@@ -23,6 +28,7 @@ document.addEventListener('alpine:init', () => {
         init() {
             this.refresh();
             this.loadRecentSnapshots(); 
+            this.loadJsonSnapshot();
             setInterval(() => { this.lastUpdate = Date.now(); }, 5000);
         },
 
@@ -258,6 +264,75 @@ document.addEventListener('alpine:init', () => {
                 console.error('Save Desktop Snapshot Error:', e);
             } finally {
                 this.savingSnapshot = false;
+            }
+        },
+
+        async saveDesktopJsonSnapshot() {
+            if (!this.activeDesktopId) return;
+            this.savingSnapshot = true;
+            try {
+                const response = await fetch(`/api/json-snapshot/desktop/${this.activeDesktopId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: this.jsonSnapshotTitle || undefined,
+                        note: this.jsonSnapshotNote || undefined
+                    })
+                });
+                if (!response.ok) throw new Error('Failed to save desktop JSON snapshot');
+                this.jsonSnapshot = await response.json();
+                await this.loadJsonSnapshotPlan();
+            } catch (e) {
+                console.error('Save Desktop JSON Snapshot Error:', e);
+            } finally {
+                this.savingSnapshot = false;
+            }
+        },
+
+        async loadJsonSnapshot() {
+            try {
+                const response = await fetch('/api/json-snapshot');
+                if (!response.ok) {
+                    this.jsonSnapshot = null;
+                    this.jsonRestorePlan = null;
+                    return;
+                }
+                this.jsonSnapshot = await response.json();
+                this.jsonSnapshotTitle = this.jsonSnapshot.title || '';
+                this.jsonSnapshotNote = this.jsonSnapshot.note || '';
+                await this.loadJsonSnapshotPlan();
+            } catch (e) {
+                this.jsonSnapshot = null;
+                this.jsonRestorePlan = null;
+            }
+        },
+
+        async loadJsonSnapshotPlan() {
+            try {
+                const response = await fetch('/api/json-snapshot/restore-plan', { method: 'POST' });
+                if (!response.ok) {
+                    this.jsonRestorePlan = null;
+                    return;
+                }
+                this.jsonRestorePlan = await response.json();
+            } catch (e) {
+                console.error('Load JSON Restore Plan Error:', e);
+                this.jsonRestorePlan = null;
+            }
+        },
+
+        async restoreJsonSnapshot() {
+            this.restoringJsonSnapshot = true;
+            try {
+                const response = await fetch('/api/json-snapshot/restore', { method: 'POST' });
+                if (!response.ok) throw new Error('Failed to restore desktop JSON snapshot');
+                await response.json();
+                await this.refresh();
+                await this.loadJsonSnapshotPlan();
+            } catch (e) {
+                console.error('Restore JSON Snapshot Error:', e);
+            } finally {
+                this.restoringJsonSnapshot = false;
             }
         },
 

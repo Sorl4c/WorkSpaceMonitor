@@ -149,6 +149,27 @@
                 <div x-show="$store.wm.recentSnapshots.length === 0" style="font-size:.75rem; color:#555;">No snapshots yet.</div>
             </div>
         </div>
+        <div style="padding: 0.9rem 2rem; border-bottom: 1px solid var(--border-base); background: #0a0a0a; display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: .08em; color: #6b7280;">Desktop Memory JSON</div>
+            <div style="display:grid; grid-template-columns: 220px 1fr auto auto; gap:.6rem; align-items:center;">
+                <input x-model="$store.wm.jsonSnapshotTitle" placeholder="Title for desktop memory" style="background:#111; color:#ddd; border:1px solid #252525; border-radius:6px; padding:.55rem .7rem;">
+                <input x-model="$store.wm.jsonSnapshotNote" placeholder="Quick note: what were you doing here?" style="background:#111; color:#ddd; border:1px solid #252525; border-radius:6px; padding:.55rem .7rem;">
+                <button @click="$store.wm.saveDesktopJsonSnapshot()" class="view-btn" style="border:1px solid var(--border-base);" :disabled="$store.wm.savingSnapshot || !$store.wm.activeDesktopId">Save Current Desktop</button>
+                <button @click="$store.wm.restoreJsonSnapshot()" class="view-btn" style="border:1px solid var(--border-base);" :disabled="$store.wm.restoringJsonSnapshot || !$store.wm.jsonSnapshot">Restore Desktop</button>
+            </div>
+            <div x-show="$store.wm.jsonSnapshot" style="display:flex; gap:1rem; flex-wrap:wrap; font-size:.75rem; color:#8b8b8b;">
+                <span class="font-mono" x-text="'Saved: desktop ' + ($store.wm.jsonSnapshot?.desktop?.number ?? '-')"></span>
+                <span x-text="$store.wm.jsonSnapshot?.title || 'Untitled'"></span>
+                <span x-text="$store.wm.jsonSnapshot?.note || 'No note'"></span>
+                <span x-text="($store.wm.jsonSnapshot?.window_count || 0) + ' windows'"></span>
+                <span x-text="($store.wm.jsonSnapshot?.terminal_count || 0) + ' terminals'"></span>
+            </div>
+            <div x-show="$store.wm.jsonRestorePlan" style="display:flex; gap:.5rem; flex-wrap:wrap;">
+                <div style="border:1px solid #252525; border-radius:6px; padding:.35rem .55rem; font-size:.72rem;">matched: <span x-text="$store.wm.jsonRestorePlan?.summary?.matched || 0"></span></div>
+                <div style="border:1px solid #252525; border-radius:6px; padding:.35rem .55rem; font-size:.72rem;">restorable: <span x-text="$store.wm.jsonRestorePlan?.summary?.restorable || 0"></span></div>
+                <div style="border:1px solid #252525; border-radius:6px; padding:.35rem .55rem; font-size:.72rem;">manual: <span x-text="$store.wm.jsonRestorePlan?.summary?.pending_manual || 0"></span></div>
+            </div>
+        </div>
         <div class="content-area">
             <div x-show="$store.wm.viewMode === 'detail'" class="max-width-container">
                 <template x-if="$store.wm.activeDesktopId">
