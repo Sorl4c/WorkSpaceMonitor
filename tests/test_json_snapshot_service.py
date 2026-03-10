@@ -96,3 +96,44 @@ def test_restore_plan_marks_explorer_paths_restorable(tmp_path):
     actions = [item["action"]["type"] for item in plan["items"] if item.get("action")]
     assert "explorer" in actions
     assert actions.count("terminal") == 1
+
+
+def test_restore_plan_marks_editor_already_open_elsewhere(tmp_path):
+    service = JsonSnapshotService(
+        lambda: {
+            "desktops": [{"id": "desk-5", "number": 5, "name": "Desktop 5"}],
+            "windows": [
+                {
+                    "title": "idea2.md - WorkspaceMonitor - Visual Studio Code",
+                    "process_name": "Code.exe",
+                    "desktop_id": "desk-2",
+                    "pid": 999,
+                }
+            ],
+            "terminals": [],
+        },
+        snapshot_path=str(tmp_path / "current_desktop_snapshot.json"),
+    )
+    service._write(
+        {
+            "version": 1,
+            "scope": "desktop",
+            "captured_at": "2026-03-10T00:00:00Z",
+            "title": "Desk 5",
+            "note": "Resume later",
+            "desktop": {"id": "desk-5", "number": 5, "name": "Desktop 5"},
+            "window_count": 1,
+            "terminal_count": 0,
+            "windows": [
+                {
+                    "title": "Welcome - Visual Studio Code",
+                    "process_name": "Code.exe",
+                    "project_root": r"C:\local\AppsPython\WorkspaceMonitor",
+                }
+            ],
+            "terminals": [],
+        }
+    )
+    plan = service.build_restore_plan()
+    code_item = next(item for item in plan["items"] if item["process_name"] == "Code.exe")
+    assert code_item["status"] == "already_open_elsewhere"
